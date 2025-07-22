@@ -12,7 +12,7 @@ export const TravelFooter = () => {
               <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
                 <MapPin className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold">TravelMap</span>
+              <span className="text-xl font-bold">Miomondo</span>
             </div>
             <p className="text-white/80 mb-6">
               La piattaforma sociale per viaggiatori che vogliono condividere e scoprire avventure autentiche.
@@ -67,7 +67,7 @@ export const TravelFooter = () => {
         
         <div className="border-t border-white/20 pt-8 mt-12 text-center">
           <p className="text-white/60">
-            © 2024 TravelMap. Tutti i diritti riservati. Creato con ❤️ per i viaggiatori.
+            © 2024 Miomondo. Tutti i diritti riservati. Creato con ❤️ per i viaggiatori.
           </p>
         </div>
       </div>

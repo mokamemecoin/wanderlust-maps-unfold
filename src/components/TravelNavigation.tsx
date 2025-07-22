@@ -14,7 +14,7 @@ export const TravelNavigation = () => {
             <div className="w-10 h-10 bg-gradient-hero rounded-lg flex items-center justify-center">
               <MapPin className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-foreground">TravelMap</span>
+            <span className="text-xl font-bold text-foreground">Miomondo</span>
           </div>
           
           {/* Desktop Navigation */}
