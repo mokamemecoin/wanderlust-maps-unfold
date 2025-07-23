@@ -57,10 +57,11 @@ export const InteractiveGlobe = () => {
 
     // Setup scene
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(75, 800 / 600, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth > 1024 ? 800 / 800 : 600 / 600, 0.1, 1000);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     
-    renderer.setSize(800, 600);
+    const size = window.innerWidth > 1024 ? 800 : 600;
+    renderer.setSize(size, size);
     renderer.setClearColor(0x000000, 0);
     mountRef.current.appendChild(renderer.domElement);
 
@@ -73,12 +74,13 @@ export const InteractiveGlobe = () => {
     scene.add(directionalLight);
 
     // Create globe
-    const geometry = new THREE.SphereGeometry(2, 64, 64);
+    const geometry = new THREE.SphereGeometry(2.5, 128, 128);
     const material = new THREE.MeshPhongMaterial({
-      color: 0x2563eb,
+      color: 0x1e40af,
       transparent: true,
-      opacity: 0.8,
-      shininess: 100
+      opacity: 0.9,
+      shininess: 150,
+      wireframe: false
     });
     
     const globe = new THREE.Mesh(geometry, material);
@@ -87,21 +89,23 @@ export const InteractiveGlobe = () => {
     // Add continents as separate meshes for interaction
     const continents = [
       // Europa
-      { position: [0.5, 1, 1.5], color: 0x10b981, country: 'IT' },
-      { position: [-0.3, 1.2, 1.4], color: 0x10b981, country: 'FR' },
+      { position: [0.6, 1.3, 2], color: 0x10b981, country: 'IT' },
+      { position: [-0.4, 1.5, 1.8], color: 0x059669, country: 'FR' },
       // Asia  
-      { position: [1.5, 0.8, 1], color: 0xf59e0b, country: 'JP' },
+      { position: [2, 1, 1.3], color: 0xf59e0b, country: 'JP' },
       // Nord America
-      { position: [-1.2, 0.5, 1.3], color: 0xef4444, country: 'US' }
+      { position: [-1.5, 0.7, 1.7], color: 0xef4444, country: 'US' }
     ];
 
     const continentMeshes: THREE.Mesh[] = [];
     continents.forEach((continent, index) => {
-      const contGeometry = new THREE.SphereGeometry(0.15, 16, 16);
+      const contGeometry = new THREE.SphereGeometry(0.2, 32, 32);
       const contMaterial = new THREE.MeshPhongMaterial({ 
         color: continent.color,
         transparent: true,
-        opacity: 0.9
+        opacity: 1,
+        emissive: continent.color,
+        emissiveIntensity: 0.3
       });
       const contMesh = new THREE.Mesh(contGeometry, contMaterial);
       contMesh.position.set(continent.position[0], continent.position[1], continent.position[2]);
@@ -111,7 +115,7 @@ export const InteractiveGlobe = () => {
     });
 
     // Position camera
-    camera.position.z = 6;
+    camera.position.z = 7;
 
     // Mouse interaction
     let mouseDown = false;
@@ -179,9 +183,9 @@ export const InteractiveGlobe = () => {
       requestAnimationFrame(animate);
       
       if (isRotating && !mouseDown) {
-        globe.rotation.y += 0.002;
+        globe.rotation.y += 0.005;
         continentMeshes.forEach(mesh => {
-          mesh.rotation.y += 0.002;
+          mesh.rotation.y += 0.005;
         });
       }
       
@@ -199,78 +203,79 @@ export const InteractiveGlobe = () => {
   }, [isRotating]);
 
   return (
-    <section className="py-20 bg-gradient-to-b from-muted/30 to-background relative overflow-hidden">
+    <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10 overflow-hidden">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-            Esplora il <span className="text-primary">Mondo</span>
-          </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Clicca sui continenti per scoprire destinazioni straordinarie e storie di viaggiatori
+        <div className="text-center mb-12">
+          <h1 className="text-5xl md:text-7xl font-bold text-foreground mb-6 animate-fade-up">
+            Esplora il <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Mondo</span>
+          </h1>
+          <p className="text-xl md:text-2xl text-muted-foreground max-w-3xl mx-auto animate-fade-up [animation-delay:0.2s]">
+            Clicca sui paesi del mappamondo interattivo per scoprire destinazioni straordinarie
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row items-center gap-12">
-          {/* Globe Container */}
-          <div className="relative">
+        <div className="flex flex-col xl:flex-row items-center justify-center gap-16">
+          {/* Globe Container - Primo Piano */}
+          <div className="relative animate-fade-up [animation-delay:0.4s]">
             <div 
               ref={mountRef} 
-              className="w-[800px] h-[600px] max-w-full mx-auto rounded-2xl shadow-hero bg-gradient-to-br from-primary/5 to-accent/5 border border-border/20"
+              className="w-[600px] h-[600px] lg:w-[800px] lg:h-[800px] max-w-full mx-auto rounded-full shadow-hero bg-gradient-to-br from-primary/10 via-background to-accent/10 border-2 border-primary/20"
             />
             
             {/* Controls */}
-            <div className="absolute top-4 right-4 flex gap-2">
+            <div className="absolute top-6 right-6 flex gap-2">
               <Button 
-                variant="ghost" 
+                variant="outline" 
                 size="sm" 
                 onClick={() => setIsRotating(!isRotating)}
-                className="bg-white/90 backdrop-blur-sm"
+                className="bg-background/90 backdrop-blur-sm border-primary/30 text-primary hover:bg-primary/10"
               >
-                {isRotating ? 'Pausa' : 'Ruota'}
+                {isRotating ? '⏸️ Pausa' : '▶️ Ruota'}
               </Button>
             </div>
 
             {/* Istruzioni */}
-            <div className="absolute bottom-4 left-4 bg-black/70 backdrop-blur-sm text-white p-3 rounded-lg text-sm">
-              <p>🖱️ Trascina per ruotare • 🖱️ Clicca sui punti colorati</p>
+            <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-background/90 backdrop-blur-sm border border-border/50 text-foreground p-4 rounded-xl text-center shadow-lg">
+              <p className="text-sm font-medium">🖱️ Trascina per ruotare il globo • 🎯 Clicca sui paesi colorati per esplorare</p>
             </div>
           </div>
 
           {/* Country Info Panel */}
           {selectedCountry && (
-            <Card className="p-8 max-w-md bg-gradient-card border-border/50 shadow-travel">
+            <Card className="p-8 max-w-lg bg-gradient-to-br from-background/95 to-primary/5 border-primary/20 shadow-hero backdrop-blur-sm animate-fade-up">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <MapPin className="w-6 h-6 text-primary" />
-                  <h3 className="text-2xl font-bold text-foreground">{selectedCountry.name}</h3>
+                  <MapPin className="w-7 h-7 text-primary" />
+                  <h3 className="text-3xl font-bold text-foreground">{selectedCountry.name}</h3>
                 </div>
                 <Button 
                   variant="ghost" 
                   size="icon"
                   onClick={() => setSelectedCountry(null)}
+                  className="hover:bg-primary/10"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </Button>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Capitale</label>
-                  <p className="text-lg text-foreground">{selectedCountry.capital}</p>
+                  <label className="text-sm font-semibold text-primary uppercase tracking-wide">Capitale</label>
+                  <p className="text-xl text-foreground font-medium">{selectedCountry.capital}</p>
                 </div>
                 
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Popolazione</label>
-                  <p className="text-lg text-foreground">{selectedCountry.population}</p>
+                  <label className="text-sm font-semibold text-primary uppercase tracking-wide">Popolazione</label>
+                  <p className="text-xl text-foreground font-medium">{selectedCountry.population}</p>
                 </div>
                 
                 <div>
-                  <label className="text-sm font-medium text-muted-foreground">Descrizione</label>
-                  <p className="text-foreground leading-relaxed">{selectedCountry.description}</p>
+                  <label className="text-sm font-semibold text-primary uppercase tracking-wide">Descrizione</label>
+                  <p className="text-foreground leading-relaxed text-lg">{selectedCountry.description}</p>
                 </div>
                 
-                <Button variant="travel" className="w-full mt-6">
-                  Scopri Esperienze in {selectedCountry.name}
+                <Button className="w-full mt-8 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-semibold py-6 text-lg shadow-lg">
+                  🌍 Scopri Esperienze in {selectedCountry.name}
                 </Button>
               </div>
             </Card>
