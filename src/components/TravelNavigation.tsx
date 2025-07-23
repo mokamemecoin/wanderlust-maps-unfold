@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Menu, User, Plus } from "lucide-react";
 import { MiomondoLogo } from "./MiomondoLogo";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 export const TravelNavigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -11,10 +12,10 @@ export const TravelNavigation = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3">
             <MiomondoLogo size="w-10 h-10" />
             <span className="text-xl font-bold text-foreground">Miomondo</span>
-          </div>
+          </Link>
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">

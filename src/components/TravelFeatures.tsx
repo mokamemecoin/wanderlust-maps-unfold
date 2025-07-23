@@ -3,24 +3,6 @@ import { Card } from "@/components/ui/card";
 
 const features = [
   {
-    icon: MapPin,
-    title: "Mappa Interattiva",
-    description: "Traccia i tuoi viaggi su mappe personalizzabili e visualizza il tuo percorso di esplorazione mondiale.",
-    color: "text-primary"
-  },
-  {
-    icon: Camera,
-    title: "Galleria Visuale", 
-    description: "Condividi foto e video delle tue avventure con una comunità di viaggiatori appassionati.",
-    color: "text-accent"
-  },
-  {
-    icon: Share2,
-    title: "Social Network",
-    description: "Connettiti con altri esploratori, condividi consigli e scopri esperienze autentiche.",
-    color: "text-nature"
-  },
-  {
     icon: Compass,
     title: "Scopri Destinazioni",
     description: "Trova nuove mete attraverso le storie e le raccomandazioni di altri viaggiatori.",
