@@ -24,7 +24,7 @@ const Index = () => {
             Scopri il mondo attraverso le esperienze di altri viaggiatori
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-8 justify-center items-center animate-fade-up [animation-delay:0.4s]">
+          <div className="flex flex-col sm:flex-row gap-8 justify-center items-center animate-fade-up [animation-delay:0.4s] mb-12">
             <Link to="/users">
               <Button size="lg" className="w-64 h-20 text-lg bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white shadow-lg">
                 <Users className="w-8 h-8 mr-3" />
@@ -43,6 +43,14 @@ const Index = () => {
               <Button size="lg" className="w-64 h-20 text-lg bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white shadow-lg">
                 <Plane className="w-8 h-8 mr-3" />
                 Trips
+              </Button>
+            </Link>
+          </div>
+          
+          <div className="animate-fade-up [animation-delay:0.6s]">
+            <Link to="/signup">
+              <Button size="xl" className="w-80 h-16 text-xl bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90 text-white shadow-xl transform hover:scale-105 transition-all duration-300">
+                Inizia il Viaggio
               </Button>
             </Link>
           </div>
