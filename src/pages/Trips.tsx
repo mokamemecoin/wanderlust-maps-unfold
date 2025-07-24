@@ -82,10 +82,10 @@ const Trips = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-              Viaggi <span className="text-accent">Condivisi</span>
+              I Miei <span className="text-accent">Viaggi</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Lasciati ispirare dalle avventure di altri viaggiatori e pianifica il tuo prossimo viaggio
+              Rivivi le tue avventure e i ricordi dei viaggi passati
             </p>
           </div>
           
@@ -164,7 +164,7 @@ const Trips = () => {
                   
                   <Button className="w-full">
                     <MapPin className="w-4 h-4 mr-2" />
-                    Vedi Itinerario Completo
+                    Rivivi il Viaggio
                   </Button>
                 </div>
               </Card>

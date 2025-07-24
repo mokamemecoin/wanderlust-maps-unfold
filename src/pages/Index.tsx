@@ -1,7 +1,7 @@
 import { TravelNavigation } from "@/components/TravelNavigation";
 import { TravelFeatures } from "@/components/TravelFeatures";
 import { TravelFooter } from "@/components/TravelFooter";
-import { InteractiveGlobe } from "@/components/InteractiveGlobe";
+import WorldMap from "@/components/WorldMap";
 import { Button } from "@/components/ui/button";
 import { Users, MapPin, Plane } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -11,8 +11,8 @@ const Index = () => {
     <div className="min-h-screen">
       <TravelNavigation />
       
-      {/* Interactive Globe Section */}
-      <InteractiveGlobe />
+      {/* World Map Section */}
+      <WorldMap />
       
       {/* Hero Section with Navigation Buttons */}
       <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/10">

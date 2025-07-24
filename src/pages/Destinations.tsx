@@ -83,10 +83,10 @@ const Destinations = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-              Destinazioni <span className="text-accent">Straordinarie</span>
+              Ispirazioni di <span className="text-accent">Viaggio</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Scopri i luoghi più belli del mondo attraverso gli occhi dei viaggiatori
+              Lasciati ispirare dalle destinazioni più straordinarie del mondo
             </p>
           </div>
           
@@ -141,7 +141,7 @@ const Destinations = () => {
                   
                   <Button className="w-full">
                     <MapPin className="w-4 h-4 mr-2" />
-                    Esplora Destinazione
+                    Pianifica Viaggio
                   </Button>
                 </div>
               </Card>
