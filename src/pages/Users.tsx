@@ -1,6 +1,5 @@
-import { TravelNavigation } from "@/components/TravelNavigation";
-import { TravelFooter } from "@/components/TravelFooter";
-import { Card } from "@/components/ui/card";
+import BottomNavigation from "@/components/BottomNavigation";
+import { Card, CardHeader, CardContent, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -55,67 +54,68 @@ const users = [
 
 const Users = () => {
   return (
-    <div className="min-h-screen">
-      <TravelNavigation />
+    <div className="min-h-screen bg-background pb-20">
+      <div className="sticky top-0 z-10 bg-primary text-white p-4">
+        <h1 className="text-xl font-semibold">Community Viaggiatori</h1>
+        <p className="text-sm text-white/80">Connettiti con viaggiatori da tutto il mondo</p>
+      </div>
       
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-              Comunità di <span className="text-accent">Viaggiatori</span>
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Connettiti con altri esploratori e condividi le tue avventure
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {users.map((user) => (
-              <Card key={user.id} className="p-6 bg-gradient-card hover:shadow-travel transition-all duration-300 hover:scale-105 border-border/50">
-                <div className="text-center mb-4">
-                  <Avatar className="w-20 h-20 mx-auto mb-4">
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                  </Avatar>
-                  
-                  <h3 className="font-bold text-foreground text-lg">{user.name}</h3>
-                  <p className="text-muted-foreground text-sm">{user.username}</p>
-                  
-                  <div className="flex items-center justify-center gap-1 mt-2 mb-3">
-                    <MapPin className="w-4 h-4 text-primary" />
-                    <span className="text-sm text-muted-foreground">{user.location}</span>
+      <div className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {users.map((user) => (
+            <Card key={user.id} className="overflow-hidden">
+              <div className="relative h-32 bg-gradient-to-br from-primary/10 to-accent/10">
+                <img 
+                  src={user.avatar} 
+                  alt={user.name}
+                  className="absolute bottom-2 left-4 w-16 h-16 rounded-full border-3 border-white shadow-lg object-cover"
+                />
+              </div>
+              
+              <CardHeader className="pb-3 pt-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">{user.name}</CardTitle>
+                    <CardDescription className="text-sm">@{user.username}</CardDescription>
                   </div>
-                  
-                  <div className="flex items-center justify-center gap-1 mb-4">
-                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                  <div className="flex items-center gap-1">
+                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                     <span className="text-sm font-medium">{user.rating}</span>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-primary">{user.trips}</div>
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <MapPin className="w-4 h-4" />
+                  <span className="text-sm">{user.location}</span>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="pt-0">
+                <div className="flex justify-between text-center mb-3">
+                  <div>
+                    <div className="text-xl font-bold text-primary">{user.trips}</div>
                     <div className="text-xs text-muted-foreground">Viaggi</div>
                   </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-accent">{user.photos}</div>
+                  <div>
+                    <div className="text-xl font-bold text-accent">{user.photos}</div>
                     <div className="text-xs text-muted-foreground">Foto</div>
                   </div>
                 </div>
                 
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-3">{user.bio}</p>
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                  {user.bio}
+                </p>
                 
-                <Button className="w-full">
-                  <Camera className="w-4 h-4 mr-2" />
+                <Button size="sm" className="w-full bg-primary hover:bg-primary/90 text-white">
                   Vedi Profilo
                 </Button>
-              </Card>
-            ))}
-          </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
-      </section>
+      </div>
       
-      <TravelFooter />
+      <BottomNavigation />
     </div>
   );
 };
