@@ -1,4 +1,4 @@
-import MapboxMap from "@/components/MapboxMap";
+import OpenStreetMap from "@/components/OpenStreetMap";
 import BottomNavigation from "@/components/BottomNavigation";
 
 const Index = () => {
@@ -6,7 +6,7 @@ const Index = () => {
     <div className="min-h-screen bg-background">
       {/* Main Map View */}
       <div className="h-screen relative">
-        <MapboxMap />
+        <OpenStreetMap />
       </div>
       
       {/* Bottom Navigation */}
