@@ -1,10 +1,14 @@
-import { TravelNavigation } from "@/components/TravelNavigation";
-import { TravelFooter } from "@/components/TravelFooter";
+import { useState } from "react";
+import BottomNavigation from "@/components/BottomNavigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MapPin, Calendar, Users, Heart, MessageCircle, Camera } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { MapPin, Calendar, Users, Heart, MessageCircle, Camera, Plus } from "lucide-react";
 
 const trips = [
   {
@@ -74,106 +78,215 @@ const trips = [
 ];
 
 const Trips = () => {
+  const [userTrips, setUserTrips] = useState(trips);
+  const [likes, setLikes] = useState<{[key: number]: number}>({});
+  const [newTrip, setNewTrip] = useState({
+    title: "",
+    location: "",
+    description: "",
+    duration: "",
+    date: ""
+  });
+
+  const toggleLike = (tripId: number) => {
+    setLikes(prev => ({
+      ...prev,
+      [tripId]: (prev[tripId] || 0) + 1
+    }));
+  };
+
+  const addTrip = () => {
+    if (newTrip.title && newTrip.location) {
+      const trip = {
+        id: userTrips.length + 1,
+        ...newTrip,
+        author: "Tu",
+        authorAvatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&h=150&fit=crop&crop=face",
+        image: "https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=400&h=300&fit=crop",
+        participants: 1,
+        likes: 0,
+        comments: 0,
+        photos: 0,
+        tags: ["Nuovo"]
+      };
+      setUserTrips([trip, ...userTrips]);
+      setNewTrip({ title: "", location: "", description: "", duration: "", date: "" });
+    }
+  };
+
   return (
-    <div className="min-h-screen">
-      <TravelNavigation />
-      
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-              I Miei <span className="text-accent">Viaggi</span>
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Rivivi le tue avventure e i ricordi dei viaggi passati
-            </p>
+    <div className="min-h-screen bg-background pb-16">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-lg border-b border-border/50 p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">I Miei Viaggi</h1>
+            <p className="text-sm text-muted-foreground">Rivivi le tue avventure</p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8">
-            {trips.map((trip) => (
-              <Card key={trip.id} className="overflow-hidden bg-gradient-card hover:shadow-travel transition-all duration-300 hover:scale-105 group border-border/50">
-                <div className="relative overflow-hidden">
-                  <img 
-                    src={trip.image} 
-                    alt={trip.title}
-                    className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="sm">
+                <Plus className="w-4 h-4 mr-2" />
+                Aggiungi
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Aggiungi Nuovo Viaggio</DialogTitle>
+                <DialogDescription>Condividi la tua ultima avventura</DialogDescription>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Titolo</Label>
+                  <Input
+                    id="title"
+                    value={newTrip.title}
+                    onChange={(e) => setNewTrip({...newTrip, title: e.target.value})}
+                    placeholder="Es. Weekend a Roma"
                   />
-                  <div className="absolute top-4 right-4">
-                    <div className="bg-black/50 backdrop-blur-sm rounded-full p-2">
-                      <MapPin className="w-4 h-4 text-white" />
-                    </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="location">Destinazione</Label>
+                  <Input
+                    id="location"
+                    value={newTrip.location}
+                    onChange={(e) => setNewTrip({...newTrip, location: e.target.value})}
+                    placeholder="Es. Roma, Italia"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="description">Descrizione</Label>
+                  <Textarea
+                    id="description"
+                    value={newTrip.description}
+                    onChange={(e) => setNewTrip({...newTrip, description: e.target.value})}
+                    placeholder="Racconta la tua esperienza..."
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="duration">Durata</Label>
+                    <Input
+                      id="duration"
+                      value={newTrip.duration}
+                      onChange={(e) => setNewTrip({...newTrip, duration: e.target.value})}
+                      placeholder="Es. 3 giorni"
+                    />
                   </div>
-                  <div className="absolute bottom-4 left-4 right-4">
-                    <div className="bg-black/70 backdrop-blur-sm rounded-lg p-3">
-                      <h3 className="text-white font-bold text-lg mb-1">{trip.title}</h3>
-                      <p className="text-white/80 text-sm">{trip.location}</p>
+                  
+                  <div>
+                    <Label htmlFor="date">Data</Label>
+                    <Input
+                      id="date"
+                      value={newTrip.date}
+                      onChange={(e) => setNewTrip({...newTrip, date: e.target.value})}
+                      placeholder="Es. Marzo 2024"
+                    />
+                  </div>
+                </div>
+                
+                <Button onClick={addTrip} className="w-full">
+                  Aggiungi Viaggio
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+      
+      <div className="p-4">
+          
+          <div className="space-y-6">
+          {userTrips.map((trip) => (
+            <Card key={trip.id} className="overflow-hidden">
+              <div className="relative">
+                <img 
+                  src={trip.image} 
+                  alt={trip.title}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="absolute bottom-2 left-2 right-2">
+                  <div className="bg-black/70 backdrop-blur-sm rounded-lg p-2">
+                    <h3 className="text-white font-bold text-sm mb-1">{trip.title}</h3>
+                    <p className="text-white/80 text-xs flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {trip.location}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <Avatar className="w-8 h-8">
+                    <AvatarImage src={trip.authorAvatar} alt={trip.author} />
+                    <AvatarFallback>{trip.author.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium text-sm text-foreground">{trip.author}</p>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        <span>{trip.date}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        <span>{trip.participants}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
                 
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={trip.authorAvatar} alt={trip.author} />
-                      <AvatarFallback>{trip.author.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-medium text-foreground">{trip.author}</p>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>{trip.date}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Users className="w-4 h-4" />
-                          <span>{trip.participants}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">{trip.description}</p>
-                  
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {trip.tags.slice(0, 3).map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Heart className="w-4 h-4" />
-                        <span>{trip.likes}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MessageCircle className="w-4 h-4" />
-                        <span>{trip.comments}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Camera className="w-4 h-4" />
-                        <span>{trip.photos}</span>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="text-xs">
-                      {trip.duration}
+                <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{trip.description}</p>
+                
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {trip.tags.slice(0, 2).map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-xs">
+                      {tag}
                     </Badge>
-                  </div>
-                  
-                  <Button className="w-full">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    Rivivi il Viaggio
-                  </Button>
+                  ))}
                 </div>
-              </Card>
-            ))}
-          </div>
+                
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="p-0 h-auto"
+                      onClick={() => toggleLike(trip.id)}
+                    >
+                      <Heart className="w-4 h-4 mr-1" />
+                      <span>{trip.likes + (likes[trip.id] || 0)}</span>
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      <MessageCircle className="w-3 h-3" />
+                      <span>{trip.comments}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Camera className="w-3 h-3" />
+                      <span>{trip.photos}</span>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    {trip.duration}
+                  </Badge>
+                </div>
+                
+                <Button className="w-full" size="sm">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  Rivivi il Viaggio
+                </Button>
+              </div>
+            </Card>
+          ))}
         </div>
-      </section>
+      </div>
       
-      <TravelFooter />
+      <BottomNavigation />
     </div>
   );
 };

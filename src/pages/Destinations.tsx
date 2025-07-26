@@ -1,9 +1,11 @@
-import { TravelNavigation } from "@/components/TravelNavigation";
-import { TravelFooter } from "@/components/TravelFooter";
+import { useState } from "react";
+import BottomNavigation from "@/components/BottomNavigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Star, Users, Camera } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MapPin, Star, Users, Camera, Search, Heart, Filter } from "lucide-react";
 
 const destinations = [
   {
@@ -75,82 +77,132 @@ const destinations = [
 ];
 
 const Destinations = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [favorites, setFavorites] = useState<number[]>([]);
+
+  const toggleFavorite = (id: number) => {
+    setFavorites(prev => 
+      prev.includes(id) 
+        ? prev.filter(fav => fav !== id)
+        : [...prev, id]
+    );
+  };
+
+  const filteredDestinations = destinations.filter(dest => {
+    const matchesSearch = dest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         dest.country.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || 
+                           dest.tags.some(tag => tag.toLowerCase().includes(selectedCategory.toLowerCase()));
+    return matchesSearch && matchesCategory;
+  });
+
   return (
-    <div className="min-h-screen">
-      <TravelNavigation />
-      
-      <section className="py-20 bg-background">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
-              Ispirazioni di <span className="text-accent">Viaggio</span>
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Lasciati ispirare dalle destinazioni più straordinarie del mondo
-            </p>
+    <div className="min-h-screen bg-background pb-16">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-lg border-b border-border/50 p-4">
+        <h1 className="text-2xl font-bold text-foreground mb-4">Destinazioni</h1>
+        
+        {/* Search and Filters */}
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Cerca destinazioni..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {destinations.map((destination) => (
-              <Card key={destination.id} className="overflow-hidden bg-gradient-card hover:shadow-travel transition-all duration-300 hover:scale-105 group border-border/50">
-                <div className="relative overflow-hidden">
-                  <img 
-                    src={destination.image} 
-                    alt={destination.name}
-                    className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-500"
+          <div className="flex items-center gap-2">
+            <Filter className="w-4 h-4 text-muted-foreground" />
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tutte</SelectItem>
+                <SelectItem value="spiagge">Spiagge</SelectItem>
+                <SelectItem value="cultura">Cultura</SelectItem>
+                <SelectItem value="natura">Natura</SelectItem>
+                <SelectItem value="storia">Storia</SelectItem>
+                <SelectItem value="avventura">Avventura</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+      
+      <div className="p-4">
+          
+          <div className="grid gap-6">
+          {filteredDestinations.map((destination) => (
+            <Card key={destination.id} className="overflow-hidden">
+              <div className="relative">
+                <img 
+                  src={destination.image} 
+                  alt={destination.name}
+                  className="w-full h-48 object-cover"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="absolute top-2 right-2 bg-black/30 hover:bg-black/50 text-white"
+                  onClick={() => toggleFavorite(destination.id)}
+                >
+                  <Heart 
+                    className={`w-5 h-5 ${favorites.includes(destination.id) ? 'fill-red-500 text-red-500' : ''}`} 
                   />
-                  <div className="absolute top-4 right-4">
-                    <div className="bg-black/50 backdrop-blur-sm rounded-full p-2">
-                      <MapPin className="w-4 h-4 text-white" />
-                    </div>
+                </Button>
+                <div className="absolute top-2 left-2">
+                  <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-2 py-1">
+                    <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                    <span className="text-white text-xs font-medium">{destination.rating}</span>
                   </div>
-                  <div className="absolute top-4 left-4">
-                    <div className="flex items-center gap-1 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      <span className="text-white text-sm font-medium">{destination.rating}</span>
-                    </div>
+                </div>
+              </div>
+              
+              <div className="p-4">
+                <div className="mb-3">
+                  <h3 className="text-lg font-bold text-foreground">{destination.name}</h3>
+                  <p className="text-muted-foreground text-sm flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {destination.country}
+                  </p>
+                </div>
+                
+                <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{destination.description}</p>
+                
+                <div className="flex items-center gap-4 mb-3 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1">
+                    <Users className="w-3 h-3" />
+                    <span>{destination.visitors}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Camera className="w-3 h-3" />
+                    <span>{destination.photos}</span>
                   </div>
                 </div>
                 
-                <div className="p-6">
-                  <div className="mb-3">
-                    <h3 className="text-xl font-bold text-foreground">{destination.name}</h3>
-                    <p className="text-muted-foreground text-sm">{destination.country}</p>
-                  </div>
-                  
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-3">{destination.description}</p>
-                  
-                  <div className="flex items-center gap-4 mb-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Users className="w-4 h-4" />
-                      <span>{destination.visitors}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Camera className="w-4 h-4" />
-                      <span>{destination.photos}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    {destination.tags.slice(0, 3).map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  
-                  <Button className="w-full">
-                    <MapPin className="w-4 h-4 mr-2" />
-                    Pianifica Viaggio
-                  </Button>
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {destination.tags.slice(0, 2).map((tag) => (
+                    <Badge key={tag} variant="secondary" className="text-xs">
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
-              </Card>
-            ))}
-          </div>
+                
+                <Button className="w-full" size="sm">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  Pianifica Viaggio
+                </Button>
+              </div>
+            </Card>
+          ))}
         </div>
-      </section>
+      </div>
       
-      <TravelFooter />
+      <BottomNavigation />
     </div>
   );
 };

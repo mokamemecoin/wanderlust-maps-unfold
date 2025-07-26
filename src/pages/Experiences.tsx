@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import BottomNavigation from '@/components/BottomNavigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle, Share2 } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const Experiences = () => {
-  const experiences = [
+  const [experiences, setExperiences] = useState([
     {
       id: 1,
       user: 'Marco Rossi',
@@ -17,7 +20,12 @@ const Experiences = () => {
       likes: 24,
       comments: 8,
       time: '2 ore fa',
-      tags: ['Cultura', 'Città']
+      tags: ['Cultura', 'Città'],
+      userLiked: false,
+      commentsList: [
+        { user: 'Anna', text: 'Bellissimo posto!', time: '1h' },
+        { user: 'Luca', text: 'Devo andare assolutamente', time: '30min' }
+      ]
     },
     {
       id: 2,
@@ -29,9 +37,46 @@ const Experiences = () => {
       likes: 45,
       comments: 12,
       time: '5 ore fa',
-      tags: ['Mare', 'Tramonto', 'Romantico']
+      tags: ['Mare', 'Tramonto', 'Romantico'],
+      userLiked: false,
+      commentsList: [
+        { user: 'Mario', text: 'Che spettacolo!', time: '2h' }
+      ]
     }
-  ];
+  ]);
+
+  const [newComment, setNewComment] = useState<{[key: number]: string}>({});
+  const { toast } = useToast();
+
+  const toggleLike = (expId: number) => {
+    setExperiences(prev => prev.map(exp => 
+      exp.id === expId 
+        ? { 
+            ...exp, 
+            likes: exp.userLiked ? exp.likes - 1 : exp.likes + 1,
+            userLiked: !exp.userLiked 
+          }
+        : exp
+    ));
+  };
+
+  const addComment = (expId: number) => {
+    const comment = newComment[expId]?.trim();
+    if (!comment) return;
+
+    setExperiences(prev => prev.map(exp => 
+      exp.id === expId 
+        ? { 
+            ...exp, 
+            comments: exp.comments + 1,
+            commentsList: [...exp.commentsList, { user: 'Tu', text: comment, time: 'ora' }]
+          }
+        : exp
+    ));
+    
+    setNewComment(prev => ({ ...prev, [expId]: '' }));
+    toast({ description: 'Commento aggiunto!' });
+  };
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -78,16 +123,65 @@ const Experiences = () => {
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <Button variant="ghost" size="sm" className="p-0 h-auto">
-                    <Heart className="w-5 h-5 mr-1" />
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="p-0 h-auto"
+                    onClick={() => toggleLike(exp.id)}
+                  >
+                    <Heart className={`w-5 h-5 mr-1 ${exp.userLiked ? 'fill-red-500 text-red-500' : ''}`} />
                     <span className="text-sm">{exp.likes}</span>
                   </Button>
-                  <Button variant="ghost" size="sm" className="p-0 h-auto">
-                    <MessageCircle className="w-5 h-5 mr-1" />
-                    <span className="text-sm">{exp.comments}</span>
-                  </Button>
+                  
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="sm" className="p-0 h-auto">
+                        <MessageCircle className="w-5 h-5 mr-1" />
+                        <span className="text-sm">{exp.comments}</span>
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Commenti</DialogTitle>
+                      </DialogHeader>
+                      
+                      <div className="space-y-3 max-h-60 overflow-y-auto">
+                        {exp.commentsList.map((comment, idx) => (
+                          <div key={idx} className="flex gap-2">
+                            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white text-xs">
+                              {comment.user[0]}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-sm">{comment.user}</span>
+                                <span className="text-xs text-muted-foreground">{comment.time}</span>
+                              </div>
+                              <p className="text-sm">{comment.text}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Scrivi un commento..."
+                          value={newComment[exp.id] || ''}
+                          onChange={(e) => setNewComment(prev => ({ ...prev, [exp.id]: e.target.value }))}
+                          onKeyPress={(e) => e.key === 'Enter' && addComment(exp.id)}
+                        />
+                        <Button size="icon" onClick={() => addComment(exp.id)}>
+                          <Send className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                 </div>
-                <Button variant="ghost" size="sm" className="p-0 h-auto">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="p-0 h-auto"
+                  onClick={() => toast({ description: 'Condiviso!' })}
+                >
                   <Share2 className="w-5 h-5" />
                 </Button>
               </div>
