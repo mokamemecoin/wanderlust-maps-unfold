@@ -27,8 +27,8 @@ const Index = () => {
               <MiomondoLogo size="w-6 h-6" />
               <span className="text-lg font-bold text-foreground">Miomondo</span>
             </Link>
-            <Button variant="ghost" size="icon">
-              <MapPin className="w-5 h-5" />
+            <Button asChild variant="outline" size="sm">
+              <Link to="/signup">Registrati</Link>
             </Button>
           </div>
           

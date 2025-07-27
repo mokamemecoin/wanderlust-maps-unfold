@@ -30,13 +30,18 @@ const Users = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-background/95 backdrop-blur-lg border-b border-border/50 p-4">
-        <div className="flex items-center gap-3 mb-4">
-          <Link to="/" className="flex items-center gap-2">
-            <MiomondoLogo size="w-6 h-6" />
-            <span className="text-lg font-bold text-foreground">Miomondo</span>
-          </Link>
-          <div className="w-px h-6 bg-border" />
-          <h1 className="text-xl font-bold text-foreground">Social</h1>
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-2">
+              <MiomondoLogo size="w-6 h-6" />
+              <span className="text-lg font-bold text-foreground">Miomondo</span>
+            </Link>
+            <div className="w-px h-6 bg-border" />
+            <h1 className="text-xl font-bold text-foreground">Social</h1>
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/signup">Registrati</Link>
+          </Button>
         </div>
         
         <div className="flex items-center justify-between mb-4">
