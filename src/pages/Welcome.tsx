@@ -22,6 +22,9 @@ const Welcome = () => {
             <Link to="/signup">Log In</Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
+            <Link to="/signup">Registrati</Link>
+          </Button>
+          <Button asChild variant="secondary" size="lg" className="w-full sm:w-auto">
             <Link to="/map">Esplora la Mappa</Link>
           </Button>
         </div>
