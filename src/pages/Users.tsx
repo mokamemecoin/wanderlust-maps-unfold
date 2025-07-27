@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Link } from "react-router-dom";
+import { MiomondoLogo } from "@/components/MiomondoLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -7,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserProfile from "@/components/UserProfile";
 import SocialFeed from "@/components/SocialFeed";
 import BottomNavigation from "@/components/BottomNavigation";
-import { Search, Plus } from "lucide-react";
+import { Search, Plus, Edit } from "lucide-react";
 
 const Users = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,11 +29,20 @@ const Users = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-primary text-white p-4">
+      <div className="bg-background/95 backdrop-blur-lg border-b border-border/50 p-4">
+        <div className="flex items-center gap-3 mb-4">
+          <Link to="/" className="flex items-center gap-2">
+            <MiomondoLogo size="w-6 h-6" />
+            <span className="text-lg font-bold text-foreground">Miomondo</span>
+          </Link>
+          <div className="w-px h-6 bg-border" />
+          <h1 className="text-xl font-bold text-foreground">Social</h1>
+        </div>
+        
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-xl font-medium">Social</h1>
-          <Button size="sm" className="bg-white text-primary hover:bg-white/90 rounded-full px-4">
-            <Plus className="w-4 h-4 mr-1" />
+          <div />
+          <Button size="sm" className="rounded-full px-4">
+            <Edit className="w-4 h-4 mr-1" />
             Post
           </Button>
         </div>

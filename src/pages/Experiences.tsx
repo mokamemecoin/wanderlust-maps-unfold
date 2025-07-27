@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import BottomNavigation from '@/components/BottomNavigation';
+import { MiomondoLogo } from '@/components/MiomondoLogo';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Heart, MessageCircle, Share2, Send } from 'lucide-react';
@@ -80,9 +82,16 @@ const Experiences = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <div className="sticky top-0 z-10 bg-primary text-white p-4">
-        <h1 className="text-xl font-semibold">Esperienze</h1>
-        <p className="text-sm text-white/80">Scopri cosa stanno vivendo altri viaggiatori</p>
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-lg border-b border-border/50 p-4">
+        <div className="flex items-center gap-3 mb-3">
+          <Link to="/" className="flex items-center gap-2">
+            <MiomondoLogo size="w-6 h-6" />
+            <span className="text-lg font-bold text-foreground">Miomondo</span>
+          </Link>
+          <div className="w-px h-6 bg-border" />
+          <h1 className="text-xl font-bold text-foreground">Esperienze</h1>
+        </div>
+        <p className="text-sm text-muted-foreground">Scopri cosa stanno vivendo altri viaggiatori</p>
       </div>
 
       <div className="p-4 space-y-6">

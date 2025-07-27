@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import BottomNavigation from "@/components/BottomNavigation";
+import { MiomondoLogo } from "@/components/MiomondoLogo";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -100,7 +102,14 @@ const Destinations = () => {
   return (
     <div className="min-h-screen bg-background pb-16">
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-lg border-b border-border/50 p-4">
-        <h1 className="text-2xl font-bold text-foreground mb-4">Destinazioni</h1>
+        <div className="flex items-center gap-3 mb-4">
+          <Link to="/" className="flex items-center gap-2">
+            <MiomondoLogo size="w-6 h-6" />
+            <span className="text-lg font-bold text-foreground">Miomondo</span>
+          </Link>
+          <div className="w-px h-6 bg-border" />
+          <h1 className="text-xl font-bold text-foreground">Destinazioni</h1>
+        </div>
         
         {/* Search and Filters */}
         <div className="space-y-3">
