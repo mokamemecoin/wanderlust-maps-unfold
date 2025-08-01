@@ -9,12 +9,12 @@ const Welcome = () => {
         <div className="flex flex-col items-center space-y-4">
           <MiomondoLogo />
           <h1 className="text-4xl md:text-6xl font-bold text-foreground">
-            Benvenuto in Miomondo
+            Welcome to Miomondo
           </h1>
         </div>
         
         <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto">
-          Esplora il mondo, scopri nuove destinazioni e vivi esperienze indimenticabili
+          Explore the world, discover new destinations and live unforgettable experiences
         </p>
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -22,10 +22,10 @@ const Welcome = () => {
             <Link to="/signup">Log In</Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-            <Link to="/signup">Registrati</Link>
+            <Link to="/signup">Sign Up</Link>
           </Button>
           <Button asChild variant="secondary" size="lg" className="w-full sm:w-auto">
-            <Link to="/map">Esplora la Mappa</Link>
+            <Link to="/map">Explore Map</Link>
           </Button>
         </div>
       </div>

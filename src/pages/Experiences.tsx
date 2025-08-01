@@ -90,13 +90,13 @@ const Experiences = () => {
               <span className="text-lg font-bold text-foreground">Miomondo</span>
             </Link>
             <div className="w-px h-6 bg-border" />
-            <h1 className="text-xl font-bold text-foreground">Esperienze</h1>
+            <h1 className="text-xl font-bold text-foreground">Experiences</h1>
           </div>
           <Button asChild variant="outline" size="sm">
-            <Link to="/signup">Unisciti a Noi</Link>
+            <Link to="/signup">Join Us</Link>
           </Button>
         </div>
-        <p className="text-sm text-muted-foreground">Scopri cosa stanno vivendo altri viaggiatori</p>
+        <p className="text-sm text-muted-foreground">Discover what other travelers are experiencing</p>
       </div>
 
       <div className="p-4 space-y-6">

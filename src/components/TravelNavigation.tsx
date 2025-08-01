@@ -19,29 +19,33 @@ export const TravelNavigation = () => {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            <a href="#home" className="text-foreground hover:text-primary transition-colors font-medium">
+            <Link to="/" className="text-foreground hover:text-primary transition-colors font-medium">
               Home
-            </a>
-            <a href="#explore" className="text-foreground hover:text-primary transition-colors font-medium">
-              Esplora
-            </a>
-            <a href="#community" className="text-foreground hover:text-primary transition-colors font-medium">
+            </Link>
+            <Link to="/destinations" className="text-foreground hover:text-primary transition-colors font-medium">
+              Explore
+            </Link>
+            <Link to="/users" className="text-foreground hover:text-primary transition-colors font-medium">
               Community
-            </a>
-            <a href="#about" className="text-foreground hover:text-primary transition-colors font-medium">
-              Chi Siamo
-            </a>
+            </Link>
+            <Link to="/signup" className="text-foreground hover:text-primary transition-colors font-medium">
+              About Us
+            </Link>
           </div>
           
           {/* Actions */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="adventure" size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Aggiungi Viaggio
+            <Button asChild variant="adventure" size="sm">
+              <Link to="/trips">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Trip
+              </Link>
             </Button>
-            <Button variant="ghost" size="sm">
-              <User className="w-4 h-4 mr-2" />
-              Accedi
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/signup">
+                <User className="w-4 h-4 mr-2" />
+                Login
+              </Link>
             </Button>
           </div>
           
@@ -60,26 +64,30 @@ export const TravelNavigation = () => {
         {isMenuOpen && (
           <div className="md:hidden border-t border-border/50 py-4 bg-white/95 backdrop-blur-lg">
             <div className="flex flex-col gap-4">
-              <a href="#home" className="text-foreground hover:text-primary transition-colors font-medium py-2">
+              <Link to="/" className="text-foreground hover:text-primary transition-colors font-medium py-2">
                 Home
-              </a>
-              <a href="#explore" className="text-foreground hover:text-primary transition-colors font-medium py-2">
-                Esplora
-              </a>
-              <a href="#community" className="text-foreground hover:text-primary transition-colors font-medium py-2">
+              </Link>
+              <Link to="/destinations" className="text-foreground hover:text-primary transition-colors font-medium py-2">
+                Explore
+              </Link>
+              <Link to="/users" className="text-foreground hover:text-primary transition-colors font-medium py-2">
                 Community
-              </a>
-              <a href="#about" className="text-foreground hover:text-primary transition-colors font-medium py-2">
-                Chi Siamo
-              </a>
+              </Link>
+              <Link to="/signup" className="text-foreground hover:text-primary transition-colors font-medium py-2">
+                About Us
+              </Link>
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
-                <Button variant="adventure" size="sm">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Aggiungi Viaggio
+                <Button asChild variant="adventure" size="sm">
+                  <Link to="/trips">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Trip
+                  </Link>
                 </Button>
-                <Button variant="ghost" size="sm">
-                  <User className="w-4 h-4 mr-2" />
-                  Accedi
+                <Button asChild variant="ghost" size="sm">
+                  <Link to="/signup">
+                    <User className="w-4 h-4 mr-2" />
+                    Login
+                  </Link>
                 </Button>
               </div>
             </div>

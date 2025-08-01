@@ -28,7 +28,7 @@ const Index = () => {
               <span className="text-lg font-bold text-foreground">Miomondo</span>
             </Link>
             <Button asChild variant="outline" size="sm">
-              <Link to="/signup">Registrati</Link>
+              <Link to="/signup">Sign Up</Link>
             </Button>
           </div>
           
@@ -37,7 +37,7 @@ const Index = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Cerca destinazioni, esperienze..."
+                placeholder="Search destinations, experiences..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}

@@ -39,9 +39,9 @@ const Users = () => {
             <div className="w-px h-6 bg-border" />
             <h1 className="text-xl font-bold text-foreground">Social</h1>
           </div>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/signup">Registrati</Link>
-          </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/signup">Sign Up</Link>
+            </Button>
         </div>
         
         <div className="flex items-center justify-between mb-4">
@@ -56,7 +56,7 @@ const Users = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Cerca viaggiatori..."
+            placeholder="Search travelers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 bg-white/90 backdrop-blur-sm border-0 rounded-full"
