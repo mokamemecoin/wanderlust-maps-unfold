@@ -9,7 +9,7 @@ const BottomNavigation = () => {
     { path: '/users', icon: Users, label: 'Users', active: location.pathname === '/users' },
     { path: '/trips', icon: Plane, label: 'Trips', active: location.pathname === '/trips' },
     { path: '/destinations', icon: MapPin, label: 'Destinations', active: location.pathname === '/destinations' },
-    { path: '/', icon: Map, label: 'Maps', active: location.pathname === '/' },
+    { path: '/', icon: Map, label: 'Home Page', active: location.pathname === '/' },
     { path: '/experiences', icon: MessageCircle, label: 'Experiences', active: location.pathname === '/experiences' },
   ];
 
