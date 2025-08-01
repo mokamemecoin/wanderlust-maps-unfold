@@ -28,7 +28,7 @@ export const TravelNavigation = () => {
             <Link to="/users" className="text-foreground hover:text-primary transition-colors font-medium">
               Community
             </Link>
-            <Link to="/signup" className="text-foreground hover:text-primary transition-colors font-medium">
+            <Link to="/about" className="text-foreground hover:text-primary transition-colors font-medium">
               About Us
             </Link>
           </div>
@@ -73,7 +73,7 @@ export const TravelNavigation = () => {
               <Link to="/users" className="text-foreground hover:text-primary transition-colors font-medium py-2">
                 Community
               </Link>
-              <Link to="/signup" className="text-foreground hover:text-primary transition-colors font-medium py-2">
+              <Link to="/about" className="text-foreground hover:text-primary transition-colors font-medium py-2">
                 About Us
               </Link>
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
