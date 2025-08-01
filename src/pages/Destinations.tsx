@@ -206,9 +206,11 @@ const Destinations = () => {
                   ))}
                 </div>
                 
-                <Button className="w-full" size="sm">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  Pianifica Viaggio
+                <Button asChild className="w-full" size="sm">
+                  <Link to="/trips">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Pianifica Viaggio
+                  </Link>
                 </Button>
               </div>
             </Card>

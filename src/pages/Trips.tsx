@@ -291,9 +291,11 @@ const Trips = () => {
                   </Badge>
                 </div>
                 
-                <Button className="w-full" size="sm">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  Rivivi il Viaggio
+                <Button asChild className="w-full" size="sm">
+                  <Link to="/experiences">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Rivivi il Viaggio
+                  </Link>
                 </Button>
               </div>
             </Card>
