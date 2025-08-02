@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, User, Lock, MapPin } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +21,10 @@ const Signup = () => {
     acceptTerms: false,
     newsletter: false
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const { signUp } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -29,10 +35,59 @@ const Signup = () => {
     setFormData(prev => ({ ...prev, [name]: checked }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Qui andrà la logica di registrazione
-    console.log("Registrazione:", formData);
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Errore",
+        description: "Le password non corrispondono",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      toast({
+        title: "Errore", 
+        description: "La password deve essere di almeno 6 caratteri",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { data, error } = await signUp(
+        formData.email,
+        formData.password,
+        formData.firstName,
+        formData.lastName
+      );
+
+      if (error) {
+        toast({
+          title: "Errore di registrazione",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Registrazione completata!",
+          description: "Controlla la tua email per confermare l'account",
+        });
+        navigate("/");
+      }
+    } catch (error) {
+      toast({
+        title: "Errore",
+        description: "Si è verificato un errore durante la registrazione",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -181,9 +236,9 @@ const Signup = () => {
                   <Button
                     type="submit"
                     className="w-full h-12 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white"
-                    disabled={!formData.acceptTerms}
+                    disabled={!formData.acceptTerms || isLoading}
                   >
-                    Crea Account
+                    {isLoading ? "Creazione in corso..." : "Crea Account"}
                   </Button>
                 </form>
                 
