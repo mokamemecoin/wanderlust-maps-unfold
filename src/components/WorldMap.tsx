@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MapPin, Users } from "lucide-react";
+import { MapPin, Users, User } from "lucide-react";
 
 // Dati degli utenti attivi nel mondo
 const activeUsers = [
@@ -59,6 +60,11 @@ const activeUsers = [
 
 const WorldMap = () => {
   const [selectedUser, setSelectedUser] = useState<typeof activeUsers[0] | null>(null);
+  const navigate = useNavigate();
+
+  const handleViewProfile = (userId: number) => {
+    navigate(`/users?profile=${userId}`);
+  };
 
   return (
     <section className="py-12 md:py-20 bg-gradient-to-b from-primary/5 to-accent/5">
@@ -168,6 +174,16 @@ const WorldMap = () => {
                   <Badge variant="secondary" className="text-xs">
                     {selectedUser.activity}
                   </Badge>
+                  <div className="flex gap-2 mt-2">
+                    <Button 
+                      size="sm" 
+                      onClick={() => handleViewProfile(selectedUser.id)}
+                      className="text-xs px-2 py-1 h-6"
+                    >
+                      <User className="w-3 h-3 mr-1" />
+                      Profilo
+                    </Button>
+                  </div>
                 </div>
                 <Button 
                   variant="ghost" 
@@ -188,7 +204,7 @@ const WorldMap = () => {
             <Card 
               key={user.id} 
               className="p-3 bg-white/90 dark:bg-card/90 backdrop-blur-sm border-primary/20 cursor-pointer hover:bg-white/95 dark:hover:bg-card/95 transition-all"
-              onClick={() => setSelectedUser(selectedUser?.id === user.id ? null : user)}
+              onClick={() => handleViewProfile(user.id)}
             >
               <div className="flex items-center gap-3">
                 <div className="relative">
