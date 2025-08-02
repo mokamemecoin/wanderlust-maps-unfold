@@ -24,25 +24,35 @@ export const useAuth = () => {
   }, [])
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          first_name: firstName,
-          last_name: lastName,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          },
         },
-      },
-    })
-    return { data, error }
+      })
+      return { data, error }
+    } catch (err) {
+      console.error('Supabase signup error:', err)
+      return { data: null, error: { message: 'Servizio di registrazione non disponibile. Assicurati che Supabase sia collegato.' } }
+    }
   }
 
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { data, error }
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      return { data, error }
+    } catch (err) {
+      console.error('Supabase signin error:', err)
+      return { data: null, error: { message: 'Servizio di accesso non disponibile. Assicurati che Supabase sia collegato.' } }
+    }
   }
 
   const signOut = async () => {
