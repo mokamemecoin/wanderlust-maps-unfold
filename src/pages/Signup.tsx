@@ -10,8 +10,13 @@ import { Mail, User, Lock, MapPin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useRouteProtection } from "@/hooks/useRouteProtection";
+import { validatePassword } from "@/utils/passwordValidation";
 
 const Signup = () => {
+  // Redirect if already authenticated
+  const { loading } = useRouteProtection(false);
+  
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -22,13 +27,22 @@ const Signup = () => {
     newsletter: false
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
   const { signUp } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  if (loading) return null;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Validate password in real-time
+    if (name === 'password') {
+      const validation = validatePassword(value);
+      setPasswordErrors(validation.errors);
+    }
   };
 
   const handleCheckboxChange = (name: string, checked: boolean) => {
@@ -47,10 +61,11 @@ const Signup = () => {
       return;
     }
 
-    if (formData.password.length < 6) {
+    const passwordValidation = validatePassword(formData.password);
+    if (!passwordValidation.isValid) {
       toast({
-        title: "Errore", 
-        description: "La password deve essere di almeno 6 caratteri",
+        title: "Password non valida", 
+        description: passwordValidation.errors.join(', '),
         variant: "destructive",
       });
       return;
@@ -182,6 +197,13 @@ const Signup = () => {
                         required
                       />
                     </div>
+                    {passwordErrors.length > 0 && (
+                      <div className="text-xs text-destructive space-y-1">
+                        {passwordErrors.map((error, index) => (
+                          <p key={index}>• {error}</p>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   
                   <div className="space-y-2">

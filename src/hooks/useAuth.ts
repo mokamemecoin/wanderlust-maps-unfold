@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 import { User } from '@supabase/supabase-js'
+import { cleanupAuthState } from '@/utils/authCleanup'
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null)
@@ -25,6 +26,18 @@ export const useAuth = () => {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
+      // Clean up existing state
+      cleanupAuthState();
+      
+      // Attempt global sign out first
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
+      
+      const redirectUrl = `${window.location.origin}/`;
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -33,6 +46,7 @@ export const useAuth = () => {
             first_name: firstName,
             last_name: lastName,
           },
+          emailRedirectTo: redirectUrl,
         },
       })
       return { data, error }
@@ -44,6 +58,16 @@ export const useAuth = () => {
 
   const signIn = async (email: string, password: string) => {
     try {
+      // Clean up existing state
+      cleanupAuthState();
+      
+      // Attempt global sign out first
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -56,8 +80,22 @@ export const useAuth = () => {
   }
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    return { error }
+    try {
+      // Clean up auth state first
+      cleanupAuthState();
+      
+      // Attempt global sign out
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      
+      // Force page reload for clean state
+      window.location.href = '/';
+      
+      return { error };
+    } catch (error) {
+      // Force navigation even if sign out fails
+      window.location.href = '/';
+      return { error };
+    }
   }
 
   return {

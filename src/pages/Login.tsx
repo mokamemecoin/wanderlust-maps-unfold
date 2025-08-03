@@ -9,8 +9,12 @@ import { Mail, Lock, MapPin } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useRouteProtection } from "@/hooks/useRouteProtection";
 
 const Login = () => {
+  // Redirect if already authenticated
+  const { loading } = useRouteProtection(false);
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -19,6 +23,8 @@ const Login = () => {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  
+  if (loading) return null;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
