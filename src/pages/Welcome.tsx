@@ -19,7 +19,7 @@ const Welcome = () => {
         
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <Button asChild size="lg" className="w-full sm:w-auto">
-            <Link to="/signup">Log In</Link>
+            <Link to="/login">Log In</Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
             <Link to="/signup">Sign Up</Link>
