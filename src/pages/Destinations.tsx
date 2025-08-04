@@ -93,9 +93,27 @@ const Destinations = () => {
 
   const filteredDestinations = destinations.filter(dest => {
     const matchesSearch = dest.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         dest.country.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || 
-                           dest.tags.some(tag => tag.toLowerCase().includes(selectedCategory.toLowerCase()));
+                         dest.country.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         dest.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    let matchesCategory = true;
+    if (selectedCategory !== "all") {
+      const categoryMap: { [key: string]: string[] } = {
+        "spiagge": ["Spiagge"],
+        "cultura": ["Cultura", "Templi", "Tradizioni"],
+        "natura": ["Natura", "Aurora Boreale", "Artico", "Montagne"],
+        "storia": ["Storia", "Archeologia", "UNESCO"],
+        "avventura": ["Trekking", "Pesca", "Alba", "Deserto"]
+      };
+      
+      const categoryTags = categoryMap[selectedCategory] || [];
+      matchesCategory = dest.tags.some(tag => 
+        categoryTags.some(catTag => 
+          tag.toLowerCase().includes(catTag.toLowerCase())
+        )
+      );
+    }
+    
     return matchesSearch && matchesCategory;
   });
 
