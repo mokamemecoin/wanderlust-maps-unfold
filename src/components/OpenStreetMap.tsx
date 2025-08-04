@@ -3,6 +3,9 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { Search, X, Plus } from "lucide-react";
 
 // Fix for default markers in Leaflet
@@ -21,6 +24,13 @@ const OpenStreetMap = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAddDialog, setShowAddDialog] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    location: ''
+  });
+  const [travelers, setTravelers] = useState<any[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -43,28 +53,10 @@ const OpenStreetMap = () => {
       position: 'topright'
     }).addTo(map.current);
 
-    // Add some sample traveler markers
-    const travelers = [
-      { lng: 2.3522, lat: 48.8566, name: 'Marco a Parigi' },
-      { lng: 139.6917, lat: 35.6895, name: 'Sofia a Tokyo' },
-      { lng: -74.006, lat: 40.7128, name: 'Luca a New York' },
-      { lng: 151.2093, lat: -33.8688, name: 'Anna a Sydney' },
-      { lng: -0.1276, lat: 51.5074, name: 'Giulia a Londra' },
-      { lng: 12.4964, lat: 41.9028, name: 'Alessio a Roma' },
-      { lng: 9.1900, lat: 45.4642, name: 'Francesca a Milano' },
-    ];
+    // Load travelers from database
+    loadTravelers();
 
-    travelers.forEach((traveler) => {
-      const customIcon = L.divIcon({
-        html: `<div style="background-color: #10b981; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); animation: pulse 2s infinite;"></div>`,
-        iconSize: [14, 14],
-        className: 'traveler-marker'
-      });
-
-      L.marker([traveler.lat, traveler.lng], { icon: customIcon })
-        .bindPopup(`<div style="font-family: system-ui; font-weight: 500; font-size: 13px; color: #1f2937; padding: 2px;">${traveler.name}</div>`)
-        .addTo(map.current!);
-    });
+    // Initial load will be handled by loadTravelers
 
     // Add custom CSS for pulsing animation
     const style = document.createElement('style');
@@ -92,6 +84,112 @@ const OpenStreetMap = () => {
     };
   }, []);
 
+  const loadTravelers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('travelers')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setTravelers(data || []);
+      updateMapMarkers(data || []);
+    } catch (error) {
+      console.error('Error loading travelers:', error);
+    }
+  };
+
+  const updateMapMarkers = (travelersData: any[]) => {
+    if (!map.current) return;
+
+    // Clear existing markers first
+    map.current.eachLayer((layer) => {
+      if (layer instanceof L.Marker) {
+        map.current!.removeLayer(layer);
+      }
+    });
+
+    // Add new markers
+    travelersData.forEach((traveler) => {
+      const customIcon = L.divIcon({
+        html: `<div style="background-color: #10b981; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); animation: pulse 2s infinite;"></div>`,
+        iconSize: [14, 14],
+        className: 'traveler-marker'
+      });
+
+      L.marker([traveler.latitude, traveler.longitude], { icon: customIcon })
+        .bindPopup(`<div style="font-family: system-ui; font-weight: 500; font-size: 13px; color: #1f2937; padding: 2px;">${traveler.name} a ${traveler.location}</div>`)
+        .addTo(map.current!);
+    });
+  };
+
+  const geocodeLocation = async (location: string) => {
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`);
+      const data = await response.json();
+      
+      if (data && data.length > 0) {
+        return {
+          latitude: parseFloat(data[0].lat),
+          longitude: parseFloat(data[0].lon)
+        };
+      }
+      throw new Error('Location not found');
+    } catch (error) {
+      throw new Error('Failed to geocode location');
+    }
+  };
+
+  const handleAddTraveler = async () => {
+    if (!formData.name.trim() || !formData.location.trim()) {
+      toast({
+        title: "Errore",
+        description: "Compila tutti i campi richiesti",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Geocode the location
+      const coordinates = await geocodeLocation(formData.location);
+
+      // Add to database
+      const { error } = await supabase
+        .from('travelers')
+        .insert([
+          {
+            name: formData.name,
+            location: formData.location,
+            latitude: coordinates.latitude,
+            longitude: coordinates.longitude,
+          }
+        ]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Successo",
+        description: "Posizione aggiunta con successo!",
+      });
+
+      // Reset form and close dialog
+      setFormData({ name: '', location: '' });
+      setShowAddDialog(false);
+
+      // Reload travelers to update map
+      loadTravelers();
+
+    } catch (error) {
+      toast({
+        title: "Errore",
+        description: "Impossibile aggiungere la posizione. Verifica che la località sia corretta.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="relative w-full h-full">
       {/* Header */}
@@ -102,7 +200,11 @@ const OpenStreetMap = () => {
             <div className="w-6 h-1 bg-white/30 rounded"></div>
             <div className="w-6 h-1 bg-white/30 rounded"></div>
           </div>
-          <Button size="sm" className="bg-white text-primary hover:bg-white/90 rounded-full px-4">
+          <Button 
+            size="sm" 
+            className="bg-white text-primary hover:bg-white/90 rounded-full px-4"
+            onClick={() => setShowAddDialog(true)}
+          >
             <Plus className="w-4 h-4 mr-1" />
             Add
           </Button>
@@ -137,6 +239,41 @@ const OpenStreetMap = () => {
       <div className="absolute inset-0 pt-32">
         <div ref={mapContainer} className="w-full h-full rounded-lg" />
       </div>
+
+      {/* Add Traveler Dialog */}
+      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Aggiungi la tua posizione</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Nome</label>
+              <Input
+                placeholder="Il tuo nome"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Località</label>
+              <Input
+                placeholder="es. Roma, Italia"
+                value={formData.location}
+                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+                Annulla
+              </Button>
+              <Button onClick={handleAddTraveler}>
+                Aggiungi
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
