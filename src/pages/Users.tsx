@@ -91,6 +91,19 @@ const Users = () => {
       currentLocation: 'Rio de Janeiro, Brasile'
     }
   };
+  
+  // Filtra gli utenti basandosi sulla ricerca
+  const filteredUsers = Object.values(allUsers).filter(user => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      user.name.toLowerCase().includes(query) ||
+      user.bio.toLowerCase().includes(query) ||
+      user.currentLocation.toLowerCase().includes(query) ||
+      user.visitedPlaces.some(place => place.toLowerCase().includes(query)) ||
+      user.wishlist.some(place => place.toLowerCase().includes(query))
+    );
+  });
 
   // Determina quale utente mostrare
   const profileId = searchParams.get('profile');
@@ -152,7 +165,7 @@ const Users = () => {
           </TabsList>
           
           <TabsContent value="feed" className="p-4">
-            <SocialFeed />
+            <SocialFeed searchQuery={searchQuery} />
           </TabsContent>
           
           <TabsContent value="profile" className="p-4 flex justify-center">

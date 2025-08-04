@@ -20,7 +20,11 @@ interface FeedPost {
   liked: boolean;
 }
 
-const SocialFeed = () => {
+interface SocialFeedProps {
+  searchQuery?: string;
+}
+
+const SocialFeed = ({ searchQuery = '' }: SocialFeedProps) => {
   const [posts, setPosts] = useState<FeedPost[]>([
     {
       id: '1',
@@ -69,9 +73,25 @@ const SocialFeed = () => {
     ));
   };
 
+  // Filtra i post basandosi sulla ricerca
+  const filteredPosts = posts.filter(post => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      post.user.name.toLowerCase().includes(query) ||
+      post.content.toLowerCase().includes(query) ||
+      (post.location && post.location.toLowerCase().includes(query))
+    );
+  });
+
   return (
     <div className="space-y-4 max-w-2xl mx-auto">
-      {posts.map((post) => (
+      {filteredPosts.length === 0 && searchQuery ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Nessun post trovato per "{searchQuery}"</p>
+        </div>
+      ) : (
+        filteredPosts.map((post) => (
         <Card key={post.id} className="w-full">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-3">
@@ -143,7 +163,8 @@ const SocialFeed = () => {
             </div>
           </CardContent>
         </Card>
-      ))}
+        ))
+      )}
     </div>
   );
 };
