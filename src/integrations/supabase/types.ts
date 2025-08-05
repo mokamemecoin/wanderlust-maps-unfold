@@ -18,12 +18,15 @@ export type Database = {
         Row: {
           avatar_url: string | null
           bio: string | null
+          birth_date: string | null
           created_at: string
+          description: string | null
           first_name: string | null
           id: string
           languages: string[] | null
           last_name: string | null
           location: string | null
+          phone: string | null
           travel_style: string | null
           updated_at: string
           user_id: string
@@ -31,12 +34,15 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           created_at?: string
+          description?: string | null
           first_name?: string | null
           id?: string
           languages?: string[] | null
           last_name?: string | null
           location?: string | null
+          phone?: string | null
           travel_style?: string | null
           updated_at?: string
           user_id: string
@@ -44,12 +50,15 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           created_at?: string
+          description?: string | null
           first_name?: string | null
           id?: string
           languages?: string[] | null
           last_name?: string | null
           location?: string | null
+          phone?: string | null
           travel_style?: string | null
           updated_at?: string
           user_id?: string
@@ -86,6 +95,48 @@ export type Database = {
           name?: string
           updated_at?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      trips: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          is_current: boolean | null
+          location: string
+          photo_url: string | null
+          start_date: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_current?: boolean | null
+          location: string
+          photo_url?: string | null
+          start_date?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_current?: boolean | null
+          location?: string
+          photo_url?: string | null
+          start_date?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
