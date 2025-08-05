@@ -194,20 +194,12 @@ const OpenStreetMap = () => {
     <div className="relative w-full h-full">
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-[1000] bg-primary text-white p-4">
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-center mb-4">
           <div className="flex items-center gap-2">
             <div className="w-6 h-1 bg-white/30 rounded"></div>
             <div className="w-6 h-1 bg-white/30 rounded"></div>
             <div className="w-6 h-1 bg-white/30 rounded"></div>
           </div>
-          <Button 
-            size="sm" 
-            className="bg-white text-primary hover:bg-white/90 rounded-full px-4"
-            onClick={() => setShowAddDialog(true)}
-          >
-            <Plus className="w-4 h-4 mr-1" />
-            Add
-          </Button>
         </div>
         
         <h1 className="text-xl font-medium mb-4">Viaggiatori in Viaggio</h1>
@@ -240,40 +232,6 @@ const OpenStreetMap = () => {
         <div ref={mapContainer} className="w-full h-full rounded-lg" />
       </div>
 
-      {/* Add Traveler Dialog */}
-      <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Aggiungi la tua posizione</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Nome</label>
-              <Input
-                placeholder="Il tuo nome"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Località</label>
-              <Input
-                placeholder="es. Roma, Italia"
-                value={formData.location}
-                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
-              />
-            </div>
-            <div className="flex gap-2 justify-end">
-              <Button variant="outline" onClick={() => setShowAddDialog(false)}>
-                Annulla
-              </Button>
-              <Button onClick={handleAddTraveler}>
-                Aggiungi
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
