@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Users, Map, MapPin, Plane, MessageCircle } from 'lucide-react';
+import { Users, Map, MapPin, Plane, User } from 'lucide-react';
 
 const BottomNavigation = () => {
   const location = useLocation();
@@ -8,9 +8,9 @@ const BottomNavigation = () => {
   const navItems = [
     { path: '/users', icon: Users, label: 'Users', active: location.pathname === '/users' },
     { path: '/trips', icon: Plane, label: 'Trips', active: location.pathname === '/trips' },
+    { path: '/map', icon: Map, label: 'Mappa', active: location.pathname === '/map' },
     { path: '/destinations', icon: MapPin, label: 'Destinations', active: location.pathname === '/destinations' },
-    { path: '/', icon: Map, label: 'Home Page', active: location.pathname === '/' },
-    { path: '/experiences', icon: MessageCircle, label: 'Experiences', active: location.pathname === '/experiences' },
+    { path: '/profile', icon: User, label: 'Profilo', active: location.pathname === '/profile' },
   ];
 
   return (

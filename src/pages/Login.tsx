@@ -49,7 +49,7 @@ const Login = () => {
           title: "Accesso effettuato!",
           description: "Benvenuto di nuovo",
         });
-        navigate("/");
+        navigate("/map");
       }
     } catch (error) {
       toast({
