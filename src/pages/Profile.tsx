@@ -191,16 +191,10 @@ const Profile = () => {
         {/* Travel Statistics */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center">
-                <MapPin className="w-5 h-5 mr-2" />
-                Le Mie Esperienze di Viaggio
-              </CardTitle>
-              <Button onClick={() => setShowAddTrip(true)}>
-                <Plus className="w-4 h-4 mr-1" />
-                Aggiungi
-              </Button>
-            </div>
+            <CardTitle className="flex items-center">
+              <MapPin className="w-5 h-5 mr-2" />
+              Le Mie Esperienze di Viaggio
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-4 mb-6">
