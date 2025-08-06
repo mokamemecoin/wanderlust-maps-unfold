@@ -119,7 +119,7 @@ const Trips = () => {
   return (
     <div className="min-h-screen bg-background pb-16">
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-lg border-b border-border/50 p-4">
-        <div className="flex items-center justify-between gap-3 mb-3">
+        <div className="flex items-center gap-3 mb-3">
           <div className="flex items-center gap-3">
             <Link to="/" className="flex items-center gap-2">
               <MiomondoLogo size="w-6 h-6" />
@@ -128,9 +128,6 @@ const Trips = () => {
             <div className="w-px h-6 bg-border" />
             <h1 className="text-xl font-bold text-foreground">I Miei Viaggi</h1>
           </div>
-          <Button asChild variant="outline" size="sm">
-            <Link to="/profile">Crea Account</Link>
-          </Button>
         </div>
         
         <div className="flex items-center justify-between">
