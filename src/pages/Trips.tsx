@@ -129,7 +129,7 @@ const Trips = () => {
             <h1 className="text-xl font-bold text-foreground">I Miei Viaggi</h1>
           </div>
           <Button asChild variant="outline" size="sm">
-            <Link to="/signup">Crea Account</Link>
+            <Link to="/profile">Crea Account</Link>
           </Button>
         </div>
         
