@@ -45,7 +45,7 @@ const Index = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                className="pl-10 bg-white/20 border-white/20 text-white placeholder:text-gray-300"
+                className="pl-10 bg-white/90 border-white/30 text-gray-900 placeholder:text-gray-600"
               />
             </div>
             <Button onClick={handleSearch} size="icon" variant="secondary">
