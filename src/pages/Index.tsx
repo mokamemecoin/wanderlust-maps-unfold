@@ -3,7 +3,6 @@ import OpenStreetMap from "@/components/OpenStreetMap";
 import BottomNavigation from "@/components/BottomNavigation";
 import { Link } from "react-router-dom";
 import { MiomondoLogo } from "@/components/MiomondoLogo";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, MapPin } from "lucide-react";
 
@@ -39,13 +38,14 @@ const Index = () => {
           {/* Search Bar */}
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 w-4 h-4 text-gray-400" />
-              <Input
+              <Search className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
+              <input
+                type="text"
                 placeholder="Cerca luoghi..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                className="pl-10 bg-white/90 border-white/30 text-gray-900 placeholder:text-gray-600"
+                className="w-full h-10 pl-10 pr-3 py-2 bg-white border border-gray-200 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
             <Button onClick={handleSearch} size="icon" variant="secondary">
