@@ -212,7 +212,7 @@ const OpenStreetMap = () => {
             placeholder="Cerca luoghi..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-10 bg-white/90 backdrop-blur-sm border-0 rounded-full"
+            className="w-full pl-10 pr-10 bg-white/90 backdrop-blur-sm border-0 rounded-full text-foreground placeholder:text-muted-foreground"
           />
           {searchQuery && (
             <Button
