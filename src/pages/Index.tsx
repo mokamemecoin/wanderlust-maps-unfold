@@ -38,14 +38,15 @@ const Index = () => {
           {/* Search Bar */}
           <div className="flex gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 w-4 h-4 text-gray-500" />
+              <Search className="absolute left-3 top-3 w-4 h-4 text-white/70" />
               <input
                 type="text"
                 placeholder="Cerca luoghi..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                className="w-full h-10 pl-10 pr-3 py-2 bg-white border border-gray-200 rounded-md text-gray-900 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="w-full h-10 pl-10 pr-3 py-2 bg-black/60 text-white placeholder:text-white/80 border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent backdrop-blur"
+                aria-label="Cerca luoghi"
               />
             </div>
             <Button onClick={handleSearch} size="icon" variant="secondary">
