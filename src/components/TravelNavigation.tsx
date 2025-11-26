@@ -42,7 +42,7 @@ export const TravelNavigation = () => {
               </Link>
             </Button>
             <Button asChild variant="ghost" size="sm">
-              <Link to="/signup">
+              <Link to="/login">
                 <User className="w-4 h-4 mr-2" />
                 Login
               </Link>
@@ -84,7 +84,7 @@ export const TravelNavigation = () => {
                   </Link>
                 </Button>
                 <Button asChild variant="ghost" size="sm">
-                  <Link to="/signup">
+                  <Link to="/login">
                     <User className="w-4 h-4 mr-2" />
                     Login
                   </Link>
