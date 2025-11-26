@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { MapPin, Camera, Users, Globe } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-travel.jpg";
 
 export const TravelHero = () => {
@@ -30,13 +31,17 @@ export const TravelHero = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center animate-fade-up [animation-delay:0.4s]">
-            <Button variant="hero" size="xl" className="text-lg">
-              <MapPin className="mr-2" />
-              Inizia il Tuo Viaggio
+            <Button asChild variant="hero" size="xl" className="text-lg">
+              <Link to="/signup">
+                <MapPin className="mr-2" />
+                Inizia il Tuo Viaggio
+              </Link>
             </Button>
-            <Button variant="outline" size="xl" className="text-lg bg-white/10 border-white/30 text-white hover:bg-white/20">
-              <Globe className="mr-2" />
-              Esplora Destinazioni
+            <Button asChild variant="outline" size="xl" className="text-lg bg-white/10 border-white/30 text-white hover:bg-white/20">
+              <Link to="/destinations">
+                <Globe className="mr-2" />
+                Esplora Destinazioni
+              </Link>
             </Button>
           </div>
         </div>
