@@ -136,9 +136,11 @@ const Users = () => {
         
         <div className="flex items-center justify-between mb-4">
           <div />
-          <Button size="sm" className="rounded-full px-4">
-            <Edit className="w-4 h-4 mr-1" />
-            Post
+          <Button asChild size="sm" className="rounded-full px-4">
+            <Link to="/post">
+              <Edit className="w-4 h-4 mr-1" />
+              Post
+            </Link>
           </Button>
         </div>
         
