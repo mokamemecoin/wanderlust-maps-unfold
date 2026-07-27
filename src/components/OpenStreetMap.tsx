@@ -3,10 +3,10 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, X, Plus } from "lucide-react";
+import { Search, X, MapPin } from "lucide-react";
 
 // Fix for default markers in Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -30,6 +30,7 @@ const OpenStreetMap = () => {
     location: ''
   });
   const [travelers, setTravelers] = useState<any[]>([]);
+  const [selectedTraveler, setSelectedTraveler] = useState<any | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
