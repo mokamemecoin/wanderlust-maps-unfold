@@ -1,35 +1,50 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Users, Map, MapPin, Plane, User } from 'lucide-react';
+import { Map, Compass, Plus, User } from 'lucide-react';
 
 const BottomNavigation = () => {
   const location = useLocation();
   
   const navItems = [
-    { path: '/users', icon: Users, label: 'Users', active: location.pathname === '/users' },
-    { path: '/trips', icon: Plane, label: 'Trips', active: location.pathname === '/trips' },
-    { path: '/map', icon: Map, label: 'Mappa', active: location.pathname === '/map' },
-    { path: '/destinations', icon: MapPin, label: 'Destinations', active: location.pathname === '/destinations' },
+    { path: '/map', icon: Map, label: 'Mappa', active: location.pathname === '/map' || location.pathname === '/' },
+    { path: '/experiences', icon: Compass, label: 'Esplora', active: location.pathname === '/experiences' },
+    { path: '/post', icon: Plus, label: 'Post', active: location.pathname === '/post', highlight: true },
     { path: '/profile', icon: User, label: 'Profilo', active: location.pathname === '/profile' },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-gray-900 text-white">
-      <div className="flex items-center justify-around py-2 safe-area-pb">
+    <nav className="fixed bottom-0 left-0 right-0 z-[1100] border-t border-border bg-card text-card-foreground shadow-[0_-2px_12px_hsl(var(--foreground)/0.12)]">
+      <div className="flex items-center justify-around py-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))]">
         {navItems.map((item) => {
           const Icon = item.icon;
+          if (item.highlight) {
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                aria-label={item.label}
+                className="flex flex-col items-center justify-center flex-1 min-w-0 py-1"
+              >
+                <span className="flex items-center justify-center w-11 h-11 -mt-5 rounded-full bg-primary text-primary-foreground shadow-lg">
+                  <Icon className="w-6 h-6" />
+                </span>
+                <span className="text-[11px] font-medium mt-0.5">{item.label}</span>
+              </Link>
+            );
+          }
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center py-2 px-3 min-w-0 flex-1 transition-colors ${
+              aria-label={item.label}
+              className={`flex flex-col items-center py-2 px-2 min-w-0 flex-1 transition-colors ${
                 item.active 
                   ? 'text-primary' 
-                  : 'text-gray-400 hover:text-white'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Icon className="w-6 h-6 mb-1" />
-              <span className="text-xs font-medium truncate">{item.label}</span>
+              <Icon className="w-6 h-6 mb-0.5" />
+              <span className="text-[11px] font-medium truncate">{item.label}</span>
             </Link>
           );
         })}
