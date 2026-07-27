@@ -120,7 +120,7 @@ const OpenStreetMap = () => {
       });
 
       L.marker([traveler.latitude, traveler.longitude], { icon: customIcon })
-        .bindPopup(`<div style="font-family: system-ui; font-weight: 500; font-size: 13px; color: #1f2937; padding: 2px;">${traveler.name} a ${traveler.location}</div>`)
+        .on('click', () => setSelectedTraveler(traveler))
         .addTo(map.current!);
     });
   };
@@ -193,34 +193,28 @@ const OpenStreetMap = () => {
 
   return (
     <div className="relative w-full h-full">
-      {/* Header */}
-      <div className="absolute top-0 left-0 right-0 z-[1000] bg-primary text-white p-4">
-        <div className="flex items-center justify-center mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-1 bg-white/30 rounded"></div>
-            <div className="w-6 h-1 bg-white/30 rounded"></div>
-            <div className="w-6 h-1 bg-white/30 rounded"></div>
-          </div>
-        </div>
-        
-        <h1 className="text-xl font-medium mb-4">Viaggiatori in Viaggio</h1>
-        
-        {/* Search Bar */}
+      {/* Full-screen map */}
+      <div ref={mapContainer} className="absolute inset-0 w-full h-full" />
+
+      {/* Floating search overlay */}
+      <div className="absolute top-0 left-0 right-0 z-[1000] p-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Cerca luoghi..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-10 bg-white/90 backdrop-blur-sm border-0 rounded-full text-foreground placeholder:text-muted-foreground"
+            className="w-full h-12 pl-10 pr-10 bg-card text-foreground placeholder:text-muted-foreground border border-border rounded-full shadow-lg"
+            aria-label="Cerca luoghi"
           />
           {searchQuery && (
             <Button
               size="sm"
               variant="ghost"
               onClick={() => setSearchQuery('')}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-muted/20"
+              className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0"
+              aria-label="Cancella ricerca"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -228,11 +222,31 @@ const OpenStreetMap = () => {
         </div>
       </div>
 
-      {/* Map Container */}
-      <div className="absolute inset-0 pt-32">
-        <div ref={mapContainer} className="w-full h-full rounded-lg" />
-      </div>
-
+      {/* Bottom sheet con i dettagli del luogo */}
+      <Drawer open={!!selectedTraveler} onOpenChange={(open) => !open && setSelectedTraveler(null)}>
+        <DrawerContent className="z-[1200]">
+          <DrawerHeader className="text-left">
+            <DrawerTitle>{selectedTraveler?.name}</DrawerTitle>
+            <DrawerDescription className="flex items-center gap-1">
+              <MapPin className="w-4 h-4 text-primary" />
+              {selectedTraveler?.location}
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-8">
+            <Button
+              className="w-full"
+              onClick={() => {
+                if (selectedTraveler && map.current) {
+                  map.current.flyTo([selectedTraveler.latitude, selectedTraveler.longitude], 10);
+                }
+                setSelectedTraveler(null);
+              }}
+            >
+              Centra sulla mappa
+            </Button>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
