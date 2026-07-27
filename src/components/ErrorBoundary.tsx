@@ -27,8 +27,8 @@ export class ErrorBoundary extends Component<Props, State> {
     // Log error without exposing sensitive information
     console.error('Application error:', {
       message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
-      componentStack: process.env.NODE_ENV === 'development' ? errorInfo.componentStack : undefined
+      stack: import.meta.env.DEV ? error.stack : undefined,
+      componentStack: import.meta.env.DEV ? errorInfo.componentStack : undefined
     });
   }
 
