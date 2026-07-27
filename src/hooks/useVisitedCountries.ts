@@ -31,7 +31,7 @@ const writeCache = (cache: Record<string, CacheEntry>) => {
 
 const geocode = async (location: string): Promise<CacheEntry> => {
   const res = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(location)}`
+    `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&accept-language=en&limit=1&q=${encodeURIComponent(location)}`
   );
   const data = await res.json();
   if (!data?.length) return null;
