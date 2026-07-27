@@ -13,6 +13,7 @@ import Trips from "./pages/Trips";
 import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Experiences from "./pages/Experiences";
+import NewPost from "./pages/NewPost";
 import About from "./pages/About";
 import Profile from "./pages/Profile";
 import Terms from "./pages/Terms";
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/destinations" element={<Destinations />} />
               <Route path="/trips" element={<Trips />} />
               <Route path="/experiences" element={<Experiences />} />
+              <Route path="/post" element={<NewPost />} />
               <Route path="/about" element={<About />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/signup" element={<Signup />} />
