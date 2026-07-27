@@ -5,11 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, MapPin, Calendar, LogOut, Plus, Edit, Phone, Mail } from "lucide-react";
+import { User, MapPin, Calendar, LogOut, Plus, Edit, Phone, Mail, Globe, Images } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { AddTripDialog } from "@/components/AddTripDialog";
+import ProfileTravelMap from "@/components/ProfileTravelMap";
+import ProfilePostsGrid from "@/components/ProfilePostsGrid";
+import { useVisitedCountries } from "@/hooks/useVisitedCountries";
+import { Progress } from "@/components/ui/progress";
 
 const Profile = () => {
   const { user, loading, signOut } = useAuth();
@@ -21,6 +25,10 @@ const Profile = () => {
 
   // Protect route - require authentication
   useRouteProtection(true);
+
+  const { places, countries, worldPercentage, loading: mapLoading } = useVisitedCountries(
+    userTrips.map((trip) => trip.location)
+  );
 
   useEffect(() => {
     if (user) {
@@ -187,6 +195,62 @@ const Profile = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Mappa personale + statistiche mondo */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Globe className="w-5 h-5 mr-2 text-primary" />
+              La Mia Mappa del Mondo
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <ProfileTravelMap places={places} countries={countries} />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-xl bg-muted/50 p-4 text-center">
+                <div className="text-3xl font-bold text-primary">{countries.length}</div>
+                <div className="text-sm text-muted-foreground">Paesi visitati</div>
+              </div>
+              <div className="rounded-xl bg-muted/50 p-4 text-center">
+                <div className="text-3xl font-bold text-accent">{worldPercentage}%</div>
+                <div className="text-sm text-muted-foreground">del mondo esplorato</div>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Progress value={worldPercentage} aria-label="Percentuale di mondo esplorato" />
+              <p className="text-xs text-muted-foreground">
+                {mapLoading
+                  ? "Calcolo dei paesi visitati in corso..."
+                  : `${countries.length} paesi su 195 nel mondo`}
+              </p>
+            </div>
+
+            {countries.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {countries.map((country) => (
+                  <Badge key={country.countryCode || country.country} variant="secondary">
+                    {country.country}
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Griglia post e foto */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Images className="w-5 h-5 mr-2 text-primary" />
+              I Miei Post e Foto
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ProfilePostsGrid trips={userTrips} places={places} />
+          </CardContent>
+        </Card>
 
         {/* Travel Statistics */}
         <Card>
