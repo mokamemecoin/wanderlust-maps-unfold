@@ -5,11 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, MapPin, Calendar, LogOut, Plus, Edit, Phone, Mail } from "lucide-react";
+import { User, MapPin, Calendar, LogOut, Plus, Edit, Phone, Mail, Globe, Images } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { AddTripDialog } from "@/components/AddTripDialog";
+import ProfileTravelMap from "@/components/ProfileTravelMap";
+import ProfilePostsGrid from "@/components/ProfilePostsGrid";
+import { useVisitedCountries } from "@/hooks/useVisitedCountries";
+import { Progress } from "@/components/ui/progress";
 
 const Profile = () => {
   const { user, loading, signOut } = useAuth();
@@ -21,6 +25,10 @@ const Profile = () => {
 
   // Protect route - require authentication
   useRouteProtection(true);
+
+  const { places, countries, worldPercentage, loading: mapLoading } = useVisitedCountries(
+    userTrips.map((trip) => trip.location)
+  );
 
   useEffect(() => {
     if (user) {
