@@ -3,7 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from "@/components/ui/drawer";
+import PostDetailSheet, { PostDetail } from "@/components/PostDetailSheet";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Search, X, MapPin } from "lucide-react";
@@ -31,7 +31,48 @@ const OpenStreetMap = () => {
   });
   const [travelers, setTravelers] = useState<any[]>([]);
   const [selectedTraveler, setSelectedTraveler] = useState<any | null>(null);
+  const [selectedDetail, setSelectedDetail] = useState<PostDetail | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!selectedTraveler) {
+      setSelectedDetail(null);
+      return;
+    }
+    const parts = String(selectedTraveler.location || '').split(',').map((p: string) => p.trim());
+    const base: PostDetail = {
+      id: selectedTraveler.id,
+      title: selectedTraveler.name,
+      place: parts[0] || selectedTraveler.location,
+      country: parts.length > 1 ? parts[parts.length - 1] : undefined,
+      photos: selectedTraveler.photo_url ? [selectedTraveler.photo_url] : [],
+      latitude: Number(selectedTraveler.latitude),
+      longitude: Number(selectedTraveler.longitude),
+    };
+    setSelectedDetail(base);
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${base.latitude}&lon=${base.longitude}&accept-language=it`
+        );
+        const data = await res.json();
+        if (cancelled || !data?.address) return;
+        const a = data.address;
+        setSelectedDetail({
+          ...base,
+          place: a.city || a.town || a.village || a.municipality || a.county || base.place,
+          country: a.country || base.country,
+        });
+      } catch {
+        /* keep fallback */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedTraveler]);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -222,31 +263,18 @@ const OpenStreetMap = () => {
         </div>
       </div>
 
-      {/* Bottom sheet con i dettagli del luogo */}
-      <Drawer open={!!selectedTraveler} onOpenChange={(open) => !open && setSelectedTraveler(null)}>
-        <DrawerContent className="z-[1200]">
-          <DrawerHeader className="text-left">
-            <DrawerTitle>{selectedTraveler?.name}</DrawerTitle>
-            <DrawerDescription className="flex items-center gap-1">
-              <MapPin className="w-4 h-4 text-primary" />
-              {selectedTraveler?.location}
-            </DrawerDescription>
-          </DrawerHeader>
-          <div className="px-4 pb-8">
-            <Button
-              className="w-full"
-              onClick={() => {
-                if (selectedTraveler && map.current) {
-                  map.current.flyTo([selectedTraveler.latitude, selectedTraveler.longitude], 10);
-                }
-                setSelectedTraveler(null);
-              }}
-            >
-              Centra sulla mappa
-            </Button>
-          </div>
-        </DrawerContent>
-      </Drawer>
+      {/* Bottom sheet con i dettagli del post/luogo */}
+      <PostDetailSheet
+        post={selectedDetail}
+        open={!!selectedTraveler}
+        onOpenChange={(open) => !open && setSelectedTraveler(null)}
+        onCenterMap={(p) => {
+          if (map.current && p.latitude != null && p.longitude != null) {
+            map.current.flyTo([p.latitude, p.longitude], 10);
+          }
+          setSelectedTraveler(null);
+        }}
+      />
     </div>
   );
 };
