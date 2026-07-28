@@ -116,6 +116,26 @@ const OpenStreetMap = () => {
       .traveler-marker div {
         animation: pulse 2s infinite;
       }
+      .live-traveler-marker img {
+        width: 40px;
+        height: 40px;
+        border-radius: 9999px;
+        object-fit: cover;
+        border: 3px solid hsl(var(--primary));
+        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+        background: hsl(var(--muted));
+      }
+      .live-traveler-marker .live-dot {
+        position: absolute;
+        right: -2px;
+        bottom: -2px;
+        width: 12px;
+        height: 12px;
+        border-radius: 9999px;
+        background: #ef4444;
+        border: 2px solid white;
+        animation: pulse 1.6s infinite;
+      }
     `;
     document.head.appendChild(style);
 
@@ -141,13 +161,27 @@ const OpenStreetMap = () => {
       if (error) throw error;
 
       setTravelers(data || []);
-      updateMapMarkers(data || []);
+
+      const userIds = Array.from(
+        new Set((data || []).map((t: any) => t.user_id).filter(Boolean))
+      );
+      if (userIds.length > 0) {
+        const { data: profileRows } = await supabase
+          .from('profiles')
+          .select('user_id, first_name, last_name, avatar_url')
+          .in('user_id', userIds as string[]);
+        const map: Record<string, any> = {};
+        (profileRows || []).forEach((p: any) => {
+          map[p.user_id] = p;
+        });
+        setProfiles(map);
+      }
     } catch (error) {
       console.error('Error loading travelers:', error);
     }
   };
 
-  const updateMapMarkers = (travelersData: any[]) => {
+  useEffect(() => {
     if (!map.current) return;
 
     // Clear existing markers first
@@ -157,19 +191,34 @@ const OpenStreetMap = () => {
       }
     });
 
-    // Add new markers
-    travelersData.forEach((traveler) => {
-      const customIcon = L.divIcon({
-        html: `<div style="background-color: #10b981; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); animation: pulse 2s infinite;"></div>`,
-        iconSize: [14, 14],
-        className: 'traveler-marker'
-      });
+    const visible = showLiveOnly ? travelers.filter((t) => t.is_live) : travelers;
+
+    visible.forEach((traveler) => {
+      const profile = traveler.user_id ? profiles[traveler.user_id] : null;
+      const avatar = profile?.avatar_url;
+      const isLive = !!traveler.is_live;
+
+      const customIcon = isLive
+        ? L.divIcon({
+            html: `<div style="position:relative;width:40px;height:40px;">
+                <img src="${avatar || '/placeholder.svg'}" alt="${traveler.name}" />
+                <span class="live-dot"></span>
+              </div>`,
+            iconSize: [40, 40],
+            iconAnchor: [20, 20],
+            className: 'live-traveler-marker',
+          })
+        : L.divIcon({
+            html: `<div style="background-color: #10b981; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); animation: pulse 2s infinite;"></div>`,
+            iconSize: [14, 14],
+            className: 'traveler-marker',
+          });
 
       L.marker([traveler.latitude, traveler.longitude], { icon: customIcon })
         .on('click', () => setSelectedTraveler(traveler))
         .addTo(map.current!);
     });
-  };
+  }, [travelers, profiles, showLiveOnly]);
 
   const geocodeLocation = async (location: string) => {
     try {
