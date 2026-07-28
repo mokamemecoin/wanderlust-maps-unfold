@@ -315,12 +315,31 @@ const OpenStreetMap = () => {
             </Button>
           )}
         </div>
+
+        {/* Filtro Viaggiatori Live */}
+        <div className="mt-2 flex items-center gap-2 w-fit rounded-full bg-card/95 backdrop-blur border border-border shadow-lg px-3 py-2">
+          <Radio className={`w-4 h-4 ${showLiveOnly ? 'text-primary' : 'text-muted-foreground'}`} />
+          <Label htmlFor="live-travelers" className="text-sm cursor-pointer">
+            Viaggiatori Live
+          </Label>
+          <Switch
+            id="live-travelers"
+            checked={showLiveOnly}
+            onCheckedChange={setShowLiveOnly}
+            aria-label="Mostra solo viaggiatori live"
+          />
+          {showLiveOnly && (
+            <span className="text-xs text-muted-foreground">
+              {travelers.filter((t) => t.is_live).length}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Bottom sheet con i dettagli del post/luogo */}
       <PostDetailSheet
         post={selectedDetail}
-        open={!!selectedTraveler}
+        open={!!selectedTraveler && !selectedTraveler.is_live}
         onOpenChange={(open) => !open && setSelectedTraveler(null)}
         onCenterMap={(p) => {
           if (map.current && p.latitude != null && p.longitude != null) {
@@ -328,6 +347,27 @@ const OpenStreetMap = () => {
           }
           setSelectedTraveler(null);
         }}
+      />
+
+      {/* Bottom sheet viaggiatore live */}
+      <LiveTravelerSheet
+        open={!!selectedTraveler?.is_live}
+        onOpenChange={(open) => !open && setSelectedTraveler(null)}
+        traveler={
+          selectedTraveler?.is_live
+            ? ({
+                id: selectedTraveler.id,
+                user_id: selectedTraveler.user_id,
+                name: selectedTraveler.name,
+                location: selectedTraveler.location,
+                status_text: selectedTraveler.status_text,
+                last_active: selectedTraveler.last_active,
+                avatar_url: selectedTraveler.user_id
+                  ? profiles[selectedTraveler.user_id]?.avatar_url
+                  : null,
+              } as LiveTraveler)
+            : null
+        }
       />
     </div>
   );
