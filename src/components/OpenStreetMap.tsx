@@ -4,9 +4,12 @@ import 'leaflet/dist/leaflet.css';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import PostDetailSheet, { PostDetail } from "@/components/PostDetailSheet";
+import LiveTravelerSheet, { LiveTraveler } from "@/components/LiveTravelerSheet";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, X, MapPin } from "lucide-react";
+import { Search, X, Radio } from "lucide-react";
 
 // Fix for default markers in Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -30,12 +33,14 @@ const OpenStreetMap = () => {
     location: ''
   });
   const [travelers, setTravelers] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, any>>({});
+  const [showLiveOnly, setShowLiveOnly] = useState(false);
   const [selectedTraveler, setSelectedTraveler] = useState<any | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<PostDetail | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!selectedTraveler) {
+    if (!selectedTraveler || selectedTraveler.is_live) {
       setSelectedDetail(null);
       return;
     }
@@ -111,6 +116,26 @@ const OpenStreetMap = () => {
       .traveler-marker div {
         animation: pulse 2s infinite;
       }
+      .live-traveler-marker img {
+        width: 40px;
+        height: 40px;
+        border-radius: 9999px;
+        object-fit: cover;
+        border: 3px solid hsl(var(--primary));
+        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+        background: hsl(var(--muted));
+      }
+      .live-traveler-marker .live-dot {
+        position: absolute;
+        right: -2px;
+        bottom: -2px;
+        width: 12px;
+        height: 12px;
+        border-radius: 9999px;
+        background: #ef4444;
+        border: 2px solid white;
+        animation: pulse 1.6s infinite;
+      }
     `;
     document.head.appendChild(style);
 
@@ -136,13 +161,27 @@ const OpenStreetMap = () => {
       if (error) throw error;
 
       setTravelers(data || []);
-      updateMapMarkers(data || []);
+
+      const userIds = Array.from(
+        new Set((data || []).map((t: any) => t.user_id).filter(Boolean))
+      );
+      if (userIds.length > 0) {
+        const { data: profileRows } = await supabase
+          .from('profiles')
+          .select('user_id, first_name, last_name, avatar_url')
+          .in('user_id', userIds as string[]);
+        const map: Record<string, any> = {};
+        (profileRows || []).forEach((p: any) => {
+          map[p.user_id] = p;
+        });
+        setProfiles(map);
+      }
     } catch (error) {
       console.error('Error loading travelers:', error);
     }
   };
 
-  const updateMapMarkers = (travelersData: any[]) => {
+  useEffect(() => {
     if (!map.current) return;
 
     // Clear existing markers first
@@ -152,19 +191,34 @@ const OpenStreetMap = () => {
       }
     });
 
-    // Add new markers
-    travelersData.forEach((traveler) => {
-      const customIcon = L.divIcon({
-        html: `<div style="background-color: #10b981; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); animation: pulse 2s infinite;"></div>`,
-        iconSize: [14, 14],
-        className: 'traveler-marker'
-      });
+    const visible = showLiveOnly ? travelers.filter((t) => t.is_live) : travelers;
+
+    visible.forEach((traveler) => {
+      const profile = traveler.user_id ? profiles[traveler.user_id] : null;
+      const avatar = profile?.avatar_url;
+      const isLive = !!traveler.is_live;
+
+      const customIcon = isLive
+        ? L.divIcon({
+            html: `<div style="position:relative;width:40px;height:40px;">
+                <img src="${avatar || '/placeholder.svg'}" alt="${traveler.name}" />
+                <span class="live-dot"></span>
+              </div>`,
+            iconSize: [40, 40],
+            iconAnchor: [20, 20],
+            className: 'live-traveler-marker',
+          })
+        : L.divIcon({
+            html: `<div style="background-color: #10b981; width: 14px; height: 14px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); animation: pulse 2s infinite;"></div>`,
+            iconSize: [14, 14],
+            className: 'traveler-marker',
+          });
 
       L.marker([traveler.latitude, traveler.longitude], { icon: customIcon })
         .on('click', () => setSelectedTraveler(traveler))
         .addTo(map.current!);
     });
-  };
+  }, [travelers, profiles, showLiveOnly]);
 
   const geocodeLocation = async (location: string) => {
     try {
@@ -261,12 +315,31 @@ const OpenStreetMap = () => {
             </Button>
           )}
         </div>
+
+        {/* Filtro Viaggiatori Live */}
+        <div className="mt-2 flex items-center gap-2 w-fit rounded-full bg-card/95 backdrop-blur border border-border shadow-lg px-3 py-2">
+          <Radio className={`w-4 h-4 ${showLiveOnly ? 'text-primary' : 'text-muted-foreground'}`} />
+          <Label htmlFor="live-travelers" className="text-sm cursor-pointer">
+            Viaggiatori Live
+          </Label>
+          <Switch
+            id="live-travelers"
+            checked={showLiveOnly}
+            onCheckedChange={setShowLiveOnly}
+            aria-label="Mostra solo viaggiatori live"
+          />
+          {showLiveOnly && (
+            <span className="text-xs text-muted-foreground">
+              {travelers.filter((t) => t.is_live).length}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Bottom sheet con i dettagli del post/luogo */}
       <PostDetailSheet
         post={selectedDetail}
-        open={!!selectedTraveler}
+        open={!!selectedTraveler && !selectedTraveler.is_live}
         onOpenChange={(open) => !open && setSelectedTraveler(null)}
         onCenterMap={(p) => {
           if (map.current && p.latitude != null && p.longitude != null) {
@@ -274,6 +347,27 @@ const OpenStreetMap = () => {
           }
           setSelectedTraveler(null);
         }}
+      />
+
+      {/* Bottom sheet viaggiatore live */}
+      <LiveTravelerSheet
+        open={!!selectedTraveler?.is_live}
+        onOpenChange={(open) => !open && setSelectedTraveler(null)}
+        traveler={
+          selectedTraveler?.is_live
+            ? ({
+                id: selectedTraveler.id,
+                user_id: selectedTraveler.user_id,
+                name: selectedTraveler.name,
+                location: selectedTraveler.location,
+                status_text: selectedTraveler.status_text,
+                last_active: selectedTraveler.last_active,
+                avatar_url: selectedTraveler.user_id
+                  ? profiles[selectedTraveler.user_id]?.avatar_url
+                  : null,
+              } as LiveTraveler)
+            : null
+        }
       />
     </div>
   );
