@@ -234,14 +234,6 @@ const OpenStreetMap = () => {
     return () => window.removeEventListener('travelers-updated', handler as EventListener);
   }, []);
 
-  const __unusedMarkerCleanup = () => {
-    map.current?.eachLayer((layer) => {
-      if (layer instanceof L.Marker) {
-        map.current!.removeLayer(layer);
-      }
-    });
-  };
-
   const geocodeLocation = async (location: string) => {
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`);
