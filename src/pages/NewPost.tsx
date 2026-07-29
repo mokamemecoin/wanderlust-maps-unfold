@@ -8,22 +8,50 @@ import { Card, CardContent } from '@/components/ui/card';
 import { MiomondoLogo } from '@/components/MiomondoLogo';
 import BottomNavigation from '@/components/BottomNavigation';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 const NewPost = () => {
   const [content, setContent] = useState('');
   const [location, setLocation] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) {
       toast({ description: 'Scrivi qualcosa prima di pubblicare.' });
       return;
     }
-    toast({ description: 'Post pubblicato!' });
-    navigate('/users');
+    if (!user) {
+      toast({ description: 'Accedi per pubblicare un post.' });
+      navigate('/login');
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('trips').insert({
+        user_id: user.id,
+        title: content.trim().slice(0, 60),
+        description: content.trim(),
+        location: location.trim() || 'Sconosciuto',
+        photo_url: imageUrl.trim() || null,
+      });
+      if (error) throw error;
+      toast({ description: 'Post pubblicato!' });
+      navigate('/profile');
+    } catch (err) {
+      toast({
+        title: 'Errore',
+        description: 'Impossibile pubblicare il post. Riprova.',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -79,10 +107,12 @@ const NewPost = () => {
             )}
 
             <div className="flex gap-2 justify-end">
-              <Button type="button" variant="outline" onClick={() => navigate('/users')}>
+              <Button type="button" variant="outline" onClick={() => navigate(-1)}>
                 Annulla
               </Button>
-              <Button type="submit">Pubblica</Button>
+              <Button type="submit" disabled={saving}>
+                {saving ? 'Pubblicazione...' : 'Pubblica'}
+              </Button>
             </div>
           </CardContent>
         </Card>
