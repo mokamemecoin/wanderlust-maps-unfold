@@ -2,7 +2,11 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Map, Compass, Plus, User } from 'lucide-react';
 
-const BottomNavigation = () => {
+interface BottomNavigationProps {
+  onNewPost?: () => void;
+}
+
+const BottomNavigation = ({ onNewPost }: BottomNavigationProps) => {
   const location = useLocation();
   
   const navItems = [
@@ -19,9 +23,12 @@ const BottomNavigation = () => {
           const Icon = item.icon;
           if (item.highlight) {
             return (
-              <Link
+              <button
                 key={item.path}
-                to={item.path}
+                type="button"
+                onClick={() =>
+                  onNewPost ? onNewPost() : window.dispatchEvent(new CustomEvent('open-new-post'))
+                }
                 aria-label={item.label}
                 className="flex flex-col items-center justify-center flex-1 min-w-0 py-1"
               >
@@ -29,7 +36,7 @@ const BottomNavigation = () => {
                   <Icon className="w-6 h-6" />
                 </span>
                 <span className="text-[11px] font-medium mt-0.5">{item.label}</span>
-              </Link>
+              </button>
             );
           }
           return (
