@@ -221,6 +221,27 @@ const OpenStreetMap = () => {
     });
   }, [travelers, profiles, showLiveOnly]);
 
+  // Refresh markers when a new post is published
+  useEffect(() => {
+    const handler = async (e: Event) => {
+      await loadTravelers();
+      const detail = (e as CustomEvent).detail;
+      if (map.current && detail?.latitude != null) {
+        map.current.flyTo([detail.latitude, detail.longitude], 9);
+      }
+    };
+    window.addEventListener('travelers-updated', handler as EventListener);
+    return () => window.removeEventListener('travelers-updated', handler as EventListener);
+  }, []);
+
+  const __unusedMarkerCleanup = () => {
+    map.current?.eachLayer((layer) => {
+      if (layer instanceof L.Marker) {
+        map.current!.removeLayer(layer);
+      }
+    });
+  };
+
   const geocodeLocation = async (location: string) => {
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}&limit=1`);
