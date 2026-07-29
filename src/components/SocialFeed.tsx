@@ -3,7 +3,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Heart, MessageCircle, Share, MapPin, Camera } from "lucide-react";
+import { Heart, MessageCircle, Share, MapPin, Camera, Bookmark } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface FeedPost {
   id: string;
@@ -18,6 +19,8 @@ interface FeedPost {
   likes: number;
   comments: number;
   liked: boolean;
+  saved?: boolean;
+  commentList?: { user: string; text: string }[];
 }
 
 interface SocialFeedProps {
@@ -25,6 +28,8 @@ interface SocialFeedProps {
 }
 
 const SocialFeed = ({ searchQuery = '' }: SocialFeedProps) => {
+  const { toast } = useToast();
+  const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
   const [posts, setPosts] = useState<FeedPost[]>([
     {
       id: '1',
@@ -71,6 +76,53 @@ const SocialFeed = ({ searchQuery = '' }: SocialFeedProps) => {
           }
         : post
     ));
+  };
+
+  const handleSave = (postId: string) => {
+    let nowSaved = false;
+    setPosts(prev => prev.map(post => {
+      if (post.id !== postId) return post;
+      nowSaved = !post.saved;
+      return { ...post, saved: nowSaved };
+    }));
+    toast({ description: nowSaved ? 'Salvato tra i luoghi da visitare' : 'Rimosso dai salvati' });
+  };
+
+  const handleShare = async (post: FeedPost) => {
+    const shareData = {
+      title: `${post.user.name} su Miomondo`,
+      text: post.content,
+      url: window.location.href,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+      await navigator.clipboard.writeText(`${post.content} — ${shareData.url}`);
+      toast({ description: 'Link copiato negli appunti' });
+    } catch {
+      toast({ description: 'Condivisione annullata' });
+    }
+  };
+
+  const handleAddComment = (postId: string) => {
+    const text = (newComment[postId] || '').trim();
+    if (!text) {
+      toast({ description: 'Scrivi un commento prima di inviare.' });
+      return;
+    }
+    setPosts(prev => prev.map(post =>
+      post.id === postId
+        ? {
+            ...post,
+            comments: post.comments + 1,
+            commentList: [...(post.commentList || []), { user: 'Tu', text }],
+          }
+        : post
+    ));
+    setNewComment(prev => ({ ...prev, [postId]: '' }));
+    setOpenComments(prev => ({ ...prev, [postId]: true }));
   };
 
   // Filtra i post basandosi sulla ricerca
@@ -137,26 +189,48 @@ const SocialFeed = ({ searchQuery = '' }: SocialFeedProps) => {
                   <span className="text-xs">{post.likes}</span>
                 </Button>
                 
-                <Button variant="ghost" size="sm" className="flex items-center gap-1 h-8 px-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setOpenComments(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
+                  aria-expanded={!!openComments[post.id]}
+                  aria-label="Mostra commenti"
+                  className="flex items-center gap-1 h-8 px-2"
+                >
                   <MessageCircle className="w-4 h-4" />
                   <span className="text-xs">{post.comments}</span>
                 </Button>
                 
-                <Button variant="ghost" size="sm" className="h-8 px-2">
+                <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleShare(post)} aria-label="Condividi post">
                   <Share className="w-4 h-4" />
+                </Button>
+
+                <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleSave(post.id)} aria-label="Salva post">
+                  <Bookmark className={`w-4 h-4 ${post.saved ? 'fill-current text-primary' : ''}`} />
                 </Button>
               </div>
             </div>
             
             <div className="mt-3 pt-3 border-t">
+              {openComments[post.id] && (post.commentList?.length ?? 0) > 0 && (
+                <div className="space-y-2 mb-3">
+                  {post.commentList!.map((c, i) => (
+                    <div key={i} className="text-xs">
+                      <span className="font-medium">{c.user}: </span>
+                      <span className="text-muted-foreground">{c.text}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="flex gap-2">
                 <Input
                   placeholder="Scrivi un commento..."
                   value={newComment[post.id] || ''}
                   onChange={(e) => setNewComment(prev => ({ ...prev, [post.id]: e.target.value }))}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddComment(post.id); } }}
                   className="flex-1 h-8 text-xs"
                 />
-                <Button size="sm" variant="outline" className="h-8 px-3 text-xs">
+                <Button size="sm" variant="outline" className="h-8 px-3 text-xs" onClick={() => handleAddComment(post.id)}>
                   Invia
                 </Button>
               </div>

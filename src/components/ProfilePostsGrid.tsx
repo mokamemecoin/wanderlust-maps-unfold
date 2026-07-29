@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MapPin, Image as ImageIcon } from "lucide-react";
 import type { VisitedPlace } from "@/hooks/useVisitedCountries";
+import PostDetailSheet, { PostDetail } from "@/components/PostDetailSheet";
 
 interface ProfilePostsGridProps {
   trips: any[];
@@ -10,6 +11,7 @@ interface ProfilePostsGridProps {
 
 const ProfilePostsGrid = ({ trips, places }: ProfilePostsGridProps) => {
   const [groupBy, setGroupBy] = useState<"trip" | "country">("trip");
+  const [selected, setSelected] = useState<PostDetail | null>(null);
 
   const countryByLocation = useMemo(() => {
     const map = new Map<string, string>();
@@ -55,9 +57,21 @@ const ProfilePostsGrid = ({ trips, places }: ProfilePostsGridProps) => {
           </div>
           <div className="grid grid-cols-3 gap-2">
             {items.map((item) => (
-              <div
+              <button
                 key={item.id}
-                className="relative aspect-square rounded-lg overflow-hidden bg-muted"
+                type="button"
+                onClick={() =>
+                  setSelected({
+                    id: item.id,
+                    title: item.title || "Post",
+                    place: item.location,
+                    country: countryByLocation.get(item.location),
+                    description: item.description,
+                    photos: item.photo_url ? [item.photo_url] : [],
+                  })
+                }
+                aria-label={`Apri post ${item.title || item.location}`}
+                className="relative aspect-square rounded-lg overflow-hidden bg-muted text-left focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 {item.photo_url ? (
                   <img
@@ -74,11 +88,17 @@ const ProfilePostsGrid = ({ trips, places }: ProfilePostsGridProps) => {
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-foreground/70 to-transparent p-1">
                   <p className="text-[10px] text-background truncate">{item.location}</p>
                 </div>
-              </div>
+              </button>
             ))}
           </div>
         </div>
       ))}
+
+      <PostDetailSheet
+        post={selected}
+        open={!!selected}
+        onOpenChange={(open) => !open && setSelected(null)}
+      />
     </div>
   );
 };
