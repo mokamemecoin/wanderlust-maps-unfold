@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import BottomNavigation from "@/components/BottomNavigation";
+import NewPostSheet from "@/components/NewPostSheet";
+import { useEffect, useState } from "react";
 import Welcome from "./pages/Welcome";
 import Index from "./pages/Index";
 import Users from "./pages/Users";
@@ -21,6 +23,23 @@ import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+const AppShell = () => {
+  const [newPostOpen, setNewPostOpen] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setNewPostOpen(true);
+    window.addEventListener("open-new-post", handler);
+    return () => window.removeEventListener("open-new-post", handler);
+  }, []);
+
+  return (
+    <>
+      <BottomNavigation onNewPost={() => setNewPostOpen(true)} />
+      <NewPostSheet open={newPostOpen} onOpenChange={setNewPostOpen} />
+    </>
+  );
+};
 
 const App = () => (
   <ErrorBoundary>
@@ -48,7 +67,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>
-          <BottomNavigation />
+          <AppShell />
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
