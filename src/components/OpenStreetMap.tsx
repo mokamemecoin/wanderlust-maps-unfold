@@ -35,6 +35,7 @@ const OpenStreetMap = () => {
   const [travelers, setTravelers] = useState<any[]>([]);
   const [profiles, setProfiles] = useState<Record<string, any>>({});
   const [showLiveOnly, setShowLiveOnly] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [selectedTraveler, setSelectedTraveler] = useState<any | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<PostDetail | null>(null);
   const { toast } = useToast();
@@ -237,6 +238,32 @@ const OpenStreetMap = () => {
     }
   };
 
+  const handleSearch = async () => {
+    const q = searchQuery.trim();
+    if (!q) return;
+    setSearching(true);
+    try {
+      const local = travelers.find((t) =>
+        `${t.name} ${t.location}`.toLowerCase().includes(q.toLowerCase())
+      );
+      if (local && map.current) {
+        map.current.flyTo([Number(local.latitude), Number(local.longitude)], 10);
+        setSelectedTraveler(local);
+        return;
+      }
+      const coords = await geocodeLocation(q);
+      map.current?.flyTo([coords.latitude, coords.longitude], 10);
+    } catch {
+      toast({
+        title: "Nessun risultato",
+        description: `Non ho trovato "${q}" sulla mappa.`,
+        variant: "destructive",
+      });
+    } finally {
+      setSearching(false);
+    }
+  };
+
   const handleAddTraveler = async () => {
     if (!formData.name.trim() || !formData.location.trim()) {
       toast({
@@ -294,12 +321,26 @@ const OpenStreetMap = () => {
       {/* Floating search overlay */}
       <div className="absolute top-0 left-0 right-0 z-[1000] p-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <button
+            type="button"
+            onClick={handleSearch}
+            aria-label="Avvia ricerca"
+            className="absolute left-2 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-muted-foreground hover:text-foreground"
+          >
+            <Search className="w-5 h-5" />
+          </button>
           <Input
             type="text"
             placeholder="Cerca luoghi..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSearch();
+              }
+            }}
+            disabled={searching}
             className="w-full h-12 pl-10 pr-10 bg-card text-foreground placeholder:text-muted-foreground border border-border rounded-full shadow-lg"
             aria-label="Cerca luoghi"
           />

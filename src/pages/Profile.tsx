@@ -107,10 +107,16 @@ const Profile = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Il Mio Profilo</h1>
-          <Button variant="outline" onClick={handleSignOut}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" onClick={() => setShowAddTrip(true)}>
+              <Plus className="w-4 h-4 mr-1" />
+              Viaggio
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleSignOut}>
+              <LogOut className="w-4 h-4 mr-1" />
+              Logout
+            </Button>
+          </div>
         </div>
 
         {/* Profile Card */}
