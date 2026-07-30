@@ -41,6 +41,7 @@ const OpenStreetMap = () => {
   const [searching, setSearching] = useState(false);
   const [selectedTraveler, setSelectedTraveler] = useState<any | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<PostDetail | null>(null);
+  const [tick, setTick] = useState(0);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -221,6 +222,12 @@ const OpenStreetMap = () => {
   };
 
   const { isLive, busy: liveBusy, goLive, goOffline } = useLiveLocation(loadTravelers);
+
+  // Aggiorna il countdown dei momenti 24h ogni minuto
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 60000);
+    return () => clearInterval(id);
+  }, []);
 
   // Aggiorna periodicamente i viaggiatori live
   useEffect(() => {
