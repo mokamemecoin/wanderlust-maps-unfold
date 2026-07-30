@@ -68,8 +68,10 @@ export type Database = {
       travelers: {
         Row: {
           created_at: string
+          expires_at: string | null
           id: string
           is_live: boolean
+          is_story: boolean
           last_active: string
           latitude: number
           location: string
@@ -81,8 +83,10 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          expires_at?: string | null
           id?: string
           is_live?: boolean
+          is_story?: boolean
           last_active?: string
           latitude: number
           location: string
@@ -94,8 +98,10 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          expires_at?: string | null
           id?: string
           is_live?: boolean
+          is_story?: boolean
           last_active?: string
           latitude?: number
           location?: string
@@ -112,8 +118,10 @@ export type Database = {
           created_at: string
           description: string | null
           end_date: string | null
+          expires_at: string | null
           id: string
           is_current: boolean | null
+          is_story: boolean
           location: string
           photo_url: string | null
           start_date: string | null
@@ -125,8 +133,10 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_date?: string | null
+          expires_at?: string | null
           id?: string
           is_current?: boolean | null
+          is_story?: boolean
           location: string
           photo_url?: string | null
           start_date?: string | null
@@ -138,8 +148,10 @@ export type Database = {
           created_at?: string
           description?: string | null
           end_date?: string | null
+          expires_at?: string | null
           id?: string
           is_current?: boolean | null
+          is_story?: boolean
           location?: string
           photo_url?: string | null
           start_date?: string | null
