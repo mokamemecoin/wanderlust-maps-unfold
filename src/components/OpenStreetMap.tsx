@@ -407,7 +407,8 @@ const OpenStreetMap = () => {
         </div>
 
         {/* Filtro Viaggiatori Live */}
-        <div className="mt-2 flex items-center gap-2 w-fit rounded-full bg-card/95 backdrop-blur border border-border shadow-lg px-3 py-2">
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 w-fit rounded-full bg-card/95 backdrop-blur border border-border shadow-lg px-3 py-2">
           <Radio className={`w-4 h-4 ${showLiveOnly ? 'text-primary' : 'text-muted-foreground'}`} />
           <Label htmlFor="live-travelers" className="text-sm cursor-pointer">
             Viaggiatori Live
@@ -423,6 +424,25 @@ const OpenStreetMap = () => {
               {travelers.filter((t) => t.is_live).length}
             </span>
           )}
+        </div>
+
+          {/* Attiva/disattiva la propria posizione live */}
+          <Button
+            type="button"
+            size="sm"
+            variant={isLive ? 'default' : 'secondary'}
+            disabled={liveBusy}
+            onClick={handleLiveToggle}
+            className="rounded-full shadow-lg h-10"
+            aria-label={isLive ? 'Disattiva la mia posizione live' : 'Condividi la mia posizione live'}
+          >
+            {liveBusy ? (
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+            ) : (
+              <Radio className="w-4 h-4 mr-1" />
+            )}
+            {isLive ? 'Sei live' : 'Vai live'}
+          </Button>
         </div>
       </div>
 
