@@ -86,12 +86,18 @@ const Signup = () => {
           description: error.message,
           variant: "destructive",
         });
+      } else if (data?.session) {
+        toast({
+          title: "Registrazione completata!",
+          description: "Benvenuto su Miomondo",
+        });
+        navigate("/map");
       } else {
         toast({
           title: "Registrazione completata!",
           description: "Controlla la tua email per confermare l'account",
         });
-        navigate("/");
+        navigate("/login");
       }
     } catch (error) {
       toast({

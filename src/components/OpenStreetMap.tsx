@@ -9,7 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, X, Radio } from "lucide-react";
+import { Search, X, Radio, Loader2 } from "lucide-react";
+import { useLiveLocation } from "@/hooks/useLiveLocation";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 // Fix for default markers in Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -39,6 +42,8 @@ const OpenStreetMap = () => {
   const [selectedTraveler, setSelectedTraveler] = useState<any | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<PostDetail | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!selectedTraveler || selectedTraveler.is_live) {
@@ -179,6 +184,37 @@ const OpenStreetMap = () => {
       }
     } catch (error) {
       console.error('Error loading travelers:', error);
+    }
+  };
+
+  const { isLive, busy: liveBusy, goLive, goOffline } = useLiveLocation(loadTravelers);
+
+  // Aggiorna periodicamente i viaggiatori live
+  useEffect(() => {
+    if (!showLiveOnly && !isLive) return;
+    const id = setInterval(loadTravelers, 30000);
+    return () => clearInterval(id);
+  }, [showLiveOnly, isLive]);
+
+  const handleLiveToggle = async () => {
+    if (!user) {
+      toast({
+        title: 'Accedi per andare live',
+        description: 'Effettua l’accesso per condividere la tua posizione.',
+      });
+      navigate('/login');
+      return;
+    }
+    if (isLive) {
+      await goOffline();
+      return;
+    }
+    const ok = await goLive();
+    if (ok) {
+      setShowLiveOnly(true);
+      navigator.geolocation.getCurrentPosition((p) =>
+        map.current?.flyTo([p.coords.latitude, p.coords.longitude], 11)
+      );
     }
   };
 
@@ -371,7 +407,8 @@ const OpenStreetMap = () => {
         </div>
 
         {/* Filtro Viaggiatori Live */}
-        <div className="mt-2 flex items-center gap-2 w-fit rounded-full bg-card/95 backdrop-blur border border-border shadow-lg px-3 py-2">
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 w-fit rounded-full bg-card/95 backdrop-blur border border-border shadow-lg px-3 py-2">
           <Radio className={`w-4 h-4 ${showLiveOnly ? 'text-primary' : 'text-muted-foreground'}`} />
           <Label htmlFor="live-travelers" className="text-sm cursor-pointer">
             Viaggiatori Live
@@ -387,6 +424,25 @@ const OpenStreetMap = () => {
               {travelers.filter((t) => t.is_live).length}
             </span>
           )}
+        </div>
+
+          {/* Attiva/disattiva la propria posizione live */}
+          <Button
+            type="button"
+            size="sm"
+            variant={isLive ? 'default' : 'secondary'}
+            disabled={liveBusy}
+            onClick={handleLiveToggle}
+            className="rounded-full shadow-lg h-10"
+            aria-label={isLive ? 'Disattiva la mia posizione live' : 'Condividi la mia posizione live'}
+          >
+            {liveBusy ? (
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+            ) : (
+              <Radio className="w-4 h-4 mr-1" />
+            )}
+            {isLive ? 'Sei live' : 'Vai live'}
+          </Button>
         </div>
       </div>
 

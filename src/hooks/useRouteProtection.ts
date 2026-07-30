@@ -11,7 +11,7 @@ export const useRouteProtection = (requireAuth: boolean = true) => {
       if (requireAuth && !user) {
         navigate('/login');
       } else if (!requireAuth && user) {
-        navigate('/');
+        navigate('/map');
       }
     }
   }, [user, loading, requireAuth, navigate]);
