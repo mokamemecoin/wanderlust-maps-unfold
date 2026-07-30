@@ -9,7 +9,10 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Search, X, Radio } from "lucide-react";
+import { Search, X, Radio, Loader2 } from "lucide-react";
+import { useLiveLocation } from "@/hooks/useLiveLocation";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 // Fix for default markers in Leaflet
 import icon from 'leaflet/dist/images/marker-icon.png';
@@ -39,6 +42,8 @@ const OpenStreetMap = () => {
   const [selectedTraveler, setSelectedTraveler] = useState<any | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<PostDetail | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!selectedTraveler || selectedTraveler.is_live) {
