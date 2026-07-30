@@ -187,6 +187,37 @@ const OpenStreetMap = () => {
     }
   };
 
+  const { isLive, busy: liveBusy, goLive, goOffline } = useLiveLocation(loadTravelers);
+
+  // Aggiorna periodicamente i viaggiatori live
+  useEffect(() => {
+    if (!showLiveOnly && !isLive) return;
+    const id = setInterval(loadTravelers, 30000);
+    return () => clearInterval(id);
+  }, [showLiveOnly, isLive]);
+
+  const handleLiveToggle = async () => {
+    if (!user) {
+      toast({
+        title: 'Accedi per andare live',
+        description: 'Effettua l’accesso per condividere la tua posizione.',
+      });
+      navigate('/login');
+      return;
+    }
+    if (isLive) {
+      await goOffline();
+      return;
+    }
+    const ok = await goLive();
+    if (ok) {
+      setShowLiveOnly(true);
+      navigator.geolocation.getCurrentPosition((p) =>
+        map.current?.flyTo([p.coords.latitude, p.coords.longitude], 11)
+      );
+    }
+  };
+
   useEffect(() => {
     if (!map.current) return;
 
