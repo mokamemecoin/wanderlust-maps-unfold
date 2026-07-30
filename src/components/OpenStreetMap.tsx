@@ -3,7 +3,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import PostDetailSheet, { PostDetail } from "@/components/PostDetailSheet";
+import PostDetailSheet, { PostDetail, formatRemaining } from "@/components/PostDetailSheet";
 import LiveTravelerSheet, { LiveTraveler } from "@/components/LiveTravelerSheet";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -41,6 +41,7 @@ const OpenStreetMap = () => {
   const [searching, setSearching] = useState(false);
   const [selectedTraveler, setSelectedTraveler] = useState<any | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<PostDetail | null>(null);
+  const [tick, setTick] = useState(0);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -59,6 +60,8 @@ const OpenStreetMap = () => {
       photos: selectedTraveler.photo_url ? [selectedTraveler.photo_url] : [],
       latitude: Number(selectedTraveler.latitude),
       longitude: Number(selectedTraveler.longitude),
+      isStory: !!selectedTraveler.is_story,
+      expiresAt: selectedTraveler.expires_at ?? null,
     };
     setSelectedDetail(base);
 
@@ -142,6 +145,37 @@ const OpenStreetMap = () => {
         border: 2px solid white;
         animation: pulse 1.6s infinite;
       }
+      .story-marker .story-ring {
+        width: 44px;
+        height: 44px;
+        border-radius: 9999px;
+        padding: 3px;
+        background: conic-gradient(from 180deg, #f59e0b, #ef4444, #a855f7, #f59e0b);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+      }
+      .story-marker .story-inner {
+        width: 100%;
+        height: 100%;
+        border-radius: 9999px;
+        background-size: cover;
+        background-position: center;
+        background-color: #10b981;
+        border: 2px solid white;
+      }
+      .story-marker .story-timer {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: -12px;
+        white-space: nowrap;
+        font-size: 10px;
+        line-height: 1;
+        font-weight: 600;
+        color: white;
+        background: rgba(0,0,0,0.72);
+        border-radius: 9999px;
+        padding: 3px 6px;
+      }
     `;
     document.head.appendChild(style);
 
@@ -189,6 +223,12 @@ const OpenStreetMap = () => {
 
   const { isLive, busy: liveBusy, goLive, goOffline } = useLiveLocation(loadTravelers);
 
+  // Aggiorna il countdown dei momenti 24h ogni minuto
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 60000);
+    return () => clearInterval(id);
+  }, []);
+
   // Aggiorna periodicamente i viaggiatori live
   useEffect(() => {
     if (!showLiveOnly && !isLive) return;
@@ -228,14 +268,30 @@ const OpenStreetMap = () => {
       }
     });
 
-    const visible = showLiveOnly ? travelers.filter((t) => t.is_live) : travelers;
+    const notExpired = travelers.filter(
+      (t) => !t.is_story || !t.expires_at || new Date(t.expires_at).getTime() > Date.now()
+    );
+    const visible = showLiveOnly ? notExpired.filter((t) => t.is_live) : notExpired;
 
     visible.forEach((traveler) => {
       const profile = traveler.user_id ? profiles[traveler.user_id] : null;
       const avatar = profile?.avatar_url;
       const isLive = !!traveler.is_live;
+      const isStory = !!traveler.is_story && !isLive;
 
-      const customIcon = isLive
+      const customIcon = isStory
+        ? L.divIcon({
+            html: `<div style="position:relative;width:44px;height:44px;">
+                <div class="story-ring"><div class="story-inner" style="${
+                  avatar ? `background-image:url('${avatar}')` : ''
+                }"></div></div>
+                <span class="story-timer">${formatRemaining(traveler.expires_at) ?? '24h'}</span>
+              </div>`,
+            iconSize: [44, 44],
+            iconAnchor: [22, 22],
+            className: 'story-marker',
+          })
+        : isLive
         ? L.divIcon({
             html: `<div style="position:relative;width:40px;height:40px;">
                 <img src="${avatar || '/placeholder.svg'}" alt="${traveler.name}" />
@@ -255,7 +311,7 @@ const OpenStreetMap = () => {
         .on('click', () => setSelectedTraveler(traveler))
         .addTo(map.current!);
     });
-  }, [travelers, profiles, showLiveOnly]);
+  }, [travelers, profiles, showLiveOnly, tick]);
 
   // Refresh markers when a new post is published
   useEffect(() => {

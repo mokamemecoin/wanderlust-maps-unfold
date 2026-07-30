@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Heart, MapPin, Bookmark, Send, ImageIcon, Plus } from 'lucide-react';
+import { Heart, MapPin, Bookmark, Send, ImageIcon, Plus, Timer } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export interface PostDetail {
@@ -29,9 +29,21 @@ export interface PostDetail {
   description?: string;
   latitude?: number;
   longitude?: number;
+  isStory?: boolean;
+  expiresAt?: string | null;
 }
 
 const AVAILABLE_TAGS = ['#Consiglio', '#Cibo', '#Avventura', '#PuntoPanoramico'];
+const QUICK_REACTIONS = ['🔥', '😍', '👏', '😂', '🤩'];
+
+export const formatRemaining = (expiresAt?: string | null) => {
+  if (!expiresAt) return null;
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if (ms <= 0) return 'Scaduto';
+  const h = Math.floor(ms / 3_600_000);
+  const m = Math.floor((ms % 3_600_000) / 60_000);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+};
 
 type Comment = { user: string; text: string };
 
@@ -67,6 +79,18 @@ const PostDetailSheet = ({ post, open, onOpenChange, onCenterMap }: PostDetailSh
   const [comments, setComments] = useState<Comment[]>([]);
   const [draft, setDraft] = useState('');
   const [tags, setTags] = useState<string[]>([]);
+  const [reactions, setReactions] = useState<Record<string, number>>({});
+  const [remaining, setRemaining] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!post?.expiresAt) {
+      setRemaining(null);
+      return;
+    }
+    setRemaining(formatRemaining(post.expiresAt));
+    const id = setInterval(() => setRemaining(formatRemaining(post.expiresAt)), 60_000);
+    return () => clearInterval(id);
+  }, [post?.expiresAt]);
 
   useEffect(() => {
     if (!post) return;
@@ -76,17 +100,35 @@ const PostDetailSheet = ({ post, open, onOpenChange, onCenterMap }: PostDetailSh
       saved: false,
       comments: [] as Comment[],
       tags: [] as string[],
+      reactions: {} as Record<string, number>,
     });
     setLiked(state.liked);
     setLikes(state.likes);
     setSaved(state.saved);
     setComments(state.comments ?? []);
     setTags(state.tags ?? []);
+    setReactions(state.reactions ?? {});
   }, [post?.id]);
 
-  const persist = (next: Partial<{ liked: boolean; likes: number; saved: boolean; comments: Comment[]; tags: string[] }>) => {
+  const persist = (
+    next: Partial<{
+      liked: boolean;
+      likes: number;
+      saved: boolean;
+      comments: Comment[];
+      tags: string[];
+      reactions: Record<string, number>;
+    }>
+  ) => {
     if (!post) return;
-    writeStore(`post-social-${post.id}`, { liked, likes, saved, comments, tags, ...next });
+    writeStore(`post-social-${post.id}`, { liked, likes, saved, comments, tags, reactions, ...next });
+  };
+
+  const addReaction = (emoji: string) => {
+    const next = { ...reactions, [emoji]: (reactions[emoji] ?? 0) + 1 };
+    setReactions(next);
+    persist({ reactions: next });
+    toast({ description: `Hai reagito con ${emoji}` });
   };
 
   const toggleLike = () => {
@@ -126,6 +168,17 @@ const PostDetailSheet = ({ post, open, onOpenChange, onCenterMap }: PostDetailSh
       <DrawerContent className="z-[1200] max-h-[90vh]">
         <DrawerHeader className="text-left pb-2">
           <DrawerTitle>{post?.title}</DrawerTitle>
+          {post?.isStory && (
+            <div className="mt-1 flex items-center gap-2">
+              <Badge className="bg-gradient-to-r from-[#f59e0b] via-[#ef4444] to-[#a855f7] text-white border-0">
+                Momento 24h
+              </Badge>
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Timer className="w-3 h-3" />
+                {remaining ?? '—'}
+              </span>
+            </div>
+          )}
           <DrawerDescription className="flex items-center gap-1">
             <MapPin className="w-4 h-4 text-primary shrink-0" />
             <span>
@@ -184,6 +237,26 @@ const PostDetailSheet = ({ post, open, onOpenChange, onCenterMap }: PostDetailSh
             </div>
 
             {/* Azioni */}
+            <div>
+              <p className="text-xs text-muted-foreground mb-2">Reazione rapida</p>
+              <div className="flex flex-wrap gap-2">
+                {QUICK_REACTIONS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => addReaction(emoji)}
+                    aria-label={`Reagisci con ${emoji}`}
+                    className="rounded-full border border-border bg-card px-3 py-1.5 text-base hover:bg-accent transition-colors"
+                  >
+                    {emoji}
+                    {reactions[emoji] ? (
+                      <span className="ml-1 text-xs text-muted-foreground">{reactions[emoji]}</span>
+                    ) : null}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="flex items-center gap-2 border-y border-border py-2">
               <Button variant="ghost" size="sm" onClick={toggleLike} aria-label="Mi piace">
                 <Heart className={`w-5 h-5 mr-1 ${liked ? 'fill-red-500 text-red-500' : ''}`} />

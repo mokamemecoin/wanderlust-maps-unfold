@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,6 +41,7 @@ const NewPostSheet = ({ open, onOpenChange }: NewPostSheetProps) => {
   const [preview, setPreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [isStory, setIsStory] = useState(false);
 
   const mapEl = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -134,6 +136,7 @@ const NewPostSheet = ({ open, onOpenChange }: NewPostSheetProps) => {
     setPlaceQuery('');
     setLocationName('');
     setCoords(null);
+    setIsStory(false);
     handleFile(null);
   };
 
@@ -167,6 +170,7 @@ const NewPostSheet = ({ open, onOpenChange }: NewPostSheetProps) => {
       }
 
       const place = locationName.trim() || `${coords.lat.toFixed(3)}, ${coords.lng.toFixed(3)}`;
+      const expiresAt = isStory ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : null;
 
       const { error: tripErr } = await supabase.from('trips').insert({
         user_id: user.id,
@@ -174,6 +178,8 @@ const NewPostSheet = ({ open, onOpenChange }: NewPostSheetProps) => {
         description: description.trim() || null,
         location: place,
         photo_url: photoUrl,
+        is_story: isStory,
+        expires_at: expiresAt,
       });
       if (tripErr) throw tripErr;
 
@@ -183,10 +189,16 @@ const NewPostSheet = ({ open, onOpenChange }: NewPostSheetProps) => {
         location: place,
         latitude: coords.lat,
         longitude: coords.lng,
+        is_story: isStory,
+        expires_at: expiresAt,
       });
       if (travErr) throw travErr;
 
-      toast({ description: 'Post pubblicato! Segnaposto aggiunto sulla mappa.' });
+      toast({
+        description: isStory
+          ? 'Momento 24h pubblicato! Sparirà tra 24 ore.'
+          : 'Post pubblicato! Segnaposto aggiunto sulla mappa.',
+      });
       const target = { ...coords };
       reset();
       onOpenChange(false);
@@ -270,6 +282,17 @@ const NewPostSheet = ({ open, onOpenChange }: NewPostSheetProps) => {
               rows={3}
               className="mt-1 bg-card text-foreground border-border"
             />
+          </div>
+
+          {/* Momento 24h */}
+          <div className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2">
+            <div className="pr-3">
+              <Label htmlFor="post-story" className="text-sm">Momento 24h</Label>
+              <p className="text-xs text-muted-foreground">
+                Il segnaposto sarà temporaneo e sparirà dopo 24 ore.
+              </p>
+            </div>
+            <Switch id="post-story" checked={isStory} onCheckedChange={setIsStory} />
           </div>
 
           {/* Posizione */}
