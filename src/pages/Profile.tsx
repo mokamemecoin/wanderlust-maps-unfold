@@ -20,14 +20,17 @@ const Profile = () => {
   const { toast } = useToast();
   const [userProfile, setUserProfile] = useState<any>(null);
   const [userTrips, setUserTrips] = useState<any[]>([]);
+  const [userPosts, setUserPosts] = useState<any[]>([]);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showAddTrip, setShowAddTrip] = useState(false);
 
   // Protect route - require authentication
   useRouteProtection(true);
 
+  const allEntries = [...userTrips, ...userPosts];
+
   const { places, countries, worldPercentage, loading: mapLoading } = useVisitedCountries(
-    userTrips.map((trip) => trip.location)
+    allEntries.map((entry) => entry.location).filter(Boolean)
   );
 
   useEffect(() => {
@@ -60,6 +63,16 @@ const Profile = () => {
 
       if (tripsError) throw tripsError;
       setUserTrips(trips || []);
+
+      // Load user posts (Esplora feed)
+      const { data: posts, error: postsError } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (postsError) throw postsError;
+      setUserPosts(posts || []);
     } catch (error) {
       console.error('Error loading user data:', error);
     }
@@ -254,7 +267,7 @@ const Profile = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ProfilePostsGrid trips={userTrips} places={places} />
+            <ProfilePostsGrid trips={allEntries} places={places} />
           </CardContent>
         </Card>
 
