@@ -267,7 +267,7 @@ const Profile = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ProfilePostsGrid trips={userTrips} places={places} />
+            <ProfilePostsGrid trips={allEntries} places={places} />
           </CardContent>
         </Card>
 
