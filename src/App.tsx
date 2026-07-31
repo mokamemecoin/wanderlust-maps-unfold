@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import BottomNavigation from "@/components/BottomNavigation";
-import NewPostSheet from "@/components/NewPostSheet";
+import NewPostSheet, { NewEntryMode } from "@/components/NewPostSheet";
 import { useEffect, useState } from "react";
 import Welcome from "./pages/Welcome";
 import Index from "./pages/Index";
@@ -26,17 +26,27 @@ const queryClient = new QueryClient();
 
 const AppShell = () => {
   const [newPostOpen, setNewPostOpen] = useState(false);
+  const [mode, setMode] = useState<NewEntryMode | null>(null);
 
   useEffect(() => {
-    const handler = () => setNewPostOpen(true);
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      setMode(detail?.mode ?? null);
+      setNewPostOpen(true);
+    };
     window.addEventListener("open-new-post", handler);
     return () => window.removeEventListener("open-new-post", handler);
   }, []);
 
   return (
     <>
-      <BottomNavigation onNewPost={() => setNewPostOpen(true)} />
-      <NewPostSheet open={newPostOpen} onOpenChange={setNewPostOpen} />
+      <BottomNavigation
+        onNewPost={() => {
+          setMode(null);
+          setNewPostOpen(true);
+        }}
+      />
+      <NewPostSheet open={newPostOpen} onOpenChange={setNewPostOpen} initialMode={mode} />
     </>
   );
 };
