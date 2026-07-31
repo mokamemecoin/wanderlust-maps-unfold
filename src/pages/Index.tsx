@@ -1,9 +1,9 @@
-import OpenStreetMap from "@/components/OpenStreetMap";
+import AlertsMap from "@/components/AlertsMap";
 
 const Index = () => {
   return (
     <div className="fixed inset-0 bottom-16 bg-background">
-      <OpenStreetMap />
+      <AlertsMap />
     </div>
   );
 };
