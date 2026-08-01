@@ -1,4 +1,4 @@
-import { AlertTriangle, Clock, MapPin, Trash2, Wrench, CloudRain, Car, Info } from 'lucide-react';
+import { AlertTriangle, Clock, MapPin, Trash2, PartyPopper } from 'lucide-react';
 import {
   Drawer,
   DrawerContent,
@@ -24,14 +24,22 @@ export interface AlertItem {
 
 export const ALERT_CATEGORIES = [
   { value: 'danger', label: 'Pericolo', icon: AlertTriangle, color: '#ef4444' },
-  { value: 'service', label: 'Servizio', icon: Wrench, color: '#3b82f6' },
-  { value: 'traffic', label: 'Traffico', icon: Car, color: '#f59e0b' },
-  { value: 'weather', label: 'Meteo', icon: CloudRain, color: '#0ea5e9' },
-  { value: 'other', label: 'Altro', icon: Info, color: '#6b7280' },
+  { value: 'event', label: 'Eventi', icon: PartyPopper, color: '#8b5cf6' },
 ] as const;
 
 export const categoryMeta = (value: string) =>
-  ALERT_CATEGORIES.find((c) => c.value === value) ?? ALERT_CATEGORIES[4];
+  ALERT_CATEGORIES.find((c) => c.value === value) ?? ALERT_CATEGORIES[0];
+
+/** Durate selezionabili per una segnalazione o un evento. */
+export const DURATION_OPTIONS = [
+  { value: '1', label: '1 ora' },
+  { value: '3', label: '3 ore' },
+  { value: '6', label: '6 ore' },
+  { value: '12', label: '12 ore' },
+  { value: '24', label: '1 giorno' },
+  { value: '72', label: '3 giorni' },
+  { value: '168', label: '1 settimana' },
+] as const;
 
 /** Restituisce il tempo rimanente in formato "3h 12m", o null se scaduto. */
 export const formatRemaining = (expiresAt?: string | null): string | null => {
@@ -83,7 +91,14 @@ const AlertDetailSheet = ({ alert, open, onOpenChange, canDelete, onDelete }: Al
             <Badge variant="secondary">{meta.label}</Badge>
             <Badge variant="outline" className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              {remaining ? `Scade tra ${remaining}` : 'Scaduto'}
+              {remaining
+                ? `Attivo fino al ${new Date(alert.expires_at).toLocaleString('it-IT', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}`
+                : 'Terminato'}
             </Badge>
             <span className="text-xs text-muted-foreground">
               {new Date(alert.created_at).toLocaleString('it-IT')}

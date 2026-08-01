@@ -18,7 +18,14 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { ALERT_CATEGORIES } from '@/components/AlertDetailSheet';
+import { ALERT_CATEGORIES, DURATION_OPTIONS } from '@/components/AlertDetailSheet';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export type NewEntryMode = 'alert' | 'post';
 
@@ -45,6 +52,7 @@ const NewPostSheet = ({ open, onOpenChange, initialMode = null }: NewPostSheetPr
   const [locationName, setLocationName] = useState('');
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [category, setCategory] = useState<string>('danger');
+  const [durationHours, setDurationHours] = useState<string>('24');
   const [tags, setTags] = useState<string[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -163,9 +171,16 @@ const NewPostSheet = ({ open, onOpenChange, initialMode = null }: NewPostSheetPr
     setLocationName('');
     setCoords(null);
     setCategory('danger');
+    setDurationHours('24');
     setTags([]);
     handleFile(null);
     setMode(null);
+  };
+
+  /** Chiude la scheda e ripulisce il form solo dopo l'animazione, senza mostrare la scelta iniziale. */
+  const closeAndReset = () => {
+    onOpenChange(false);
+    setTimeout(reset, 350);
   };
 
   const requireAuth = () => {
@@ -196,12 +211,13 @@ const NewPostSheet = ({ open, onOpenChange, initialMode = null }: NewPostSheetPr
         location: locationName.trim() || null,
         latitude: coords.lat,
         longitude: coords.lng,
+        expires_at: new Date(Date.now() + Number(durationHours) * 3_600_000).toISOString(),
       });
       if (error) throw error;
       const target = { ...coords };
-      toast({ description: 'Segnalazione pubblicata! Sarà visibile per 24 ore.' });
-      reset();
-      onOpenChange(false);
+      const durLabel = DURATION_OPTIONS.find((d) => d.value === durationHours)?.label ?? '';
+      toast({ description: `Pubblicato! Resterà visibile per ${durLabel}.` });
+      closeAndReset();
       navigate('/map');
       setTimeout(() => {
         window.dispatchEvent(
@@ -251,8 +267,7 @@ const NewPostSheet = ({ open, onOpenChange, initialMode = null }: NewPostSheetPr
       if (error) throw error;
 
       toast({ description: 'Post pubblicato nel feed Esplora!' });
-      reset();
-      onOpenChange(false);
+      closeAndReset();
       navigate('/experiences');
       setTimeout(() => window.dispatchEvent(new CustomEvent('posts-updated')), 300);
     } catch (err) {
@@ -319,11 +334,11 @@ const NewPostSheet = ({ open, onOpenChange, initialMode = null }: NewPostSheetPr
             )}
             <div className="text-left">
               <DrawerTitle>
-                {mode === 'alert' ? 'Segnalazione Live 24h' : mode === 'post' ? 'Consiglio o Post di Viaggio' : 'Cosa vuoi pubblicare?'}
+                {mode === 'alert' ? 'Pericolo o Evento' : mode === 'post' ? 'Consiglio o Post di Viaggio' : 'Cosa vuoi pubblicare?'}
               </DrawerTitle>
               <DrawerDescription>
                 {mode === 'alert'
-                  ? 'Visibile sulla mappa per 24 ore, poi sparisce.'
+                  ? 'Scegli il tipo, il punto sulla mappa e per quanto tempo resta attivo.'
                   : mode === 'post'
                   ? 'Foto, titolo e consigli: finisce nel feed Esplora.'
                   : 'Scegli il tipo di contenuto da condividere.'}
@@ -344,9 +359,9 @@ const NewPostSheet = ({ open, onOpenChange, initialMode = null }: NewPostSheetPr
                   <AlertTriangle className="w-5 h-5" />
                 </span>
                 <span>
-                  <span className="block font-semibold">Segnalazione Live 24h</span>
+                  <span className="block font-semibold">Pericolo o Evento</span>
                   <span className="block text-sm text-muted-foreground">
-                    Pericoli o servizi temporanei da mostrare sulla mappa.
+                    Segnala un pericolo o un evento da mostrare sulla mappa.
                   </span>
                 </span>
               </button>
@@ -408,6 +423,25 @@ const NewPostSheet = ({ open, onOpenChange, initialMode = null }: NewPostSheetPr
                   rows={3}
                   className="mt-1 bg-card text-foreground border-border"
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="alert-duration" className="text-sm">Durata</Label>
+                <Select value={durationHours} onValueChange={setDurationHours}>
+                  <SelectTrigger id="alert-duration" className="mt-1 bg-card text-foreground border-border">
+                    <SelectValue placeholder="Scegli la durata" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[1300]">
+                    {DURATION_OPTIONS.map((d) => (
+                      <SelectItem key={d.value} value={d.value}>
+                        {d.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Dopo questo tempo la segnalazione sparisce automaticamente dalla mappa.
+                </p>
               </div>
 
               {locationBlock(true)}
