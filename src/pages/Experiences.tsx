@@ -115,9 +115,7 @@ const Experiences = () => {
         .eq('follower_id', user.id);
       setFollowing(new Set((followRows || []).map((f: any) => f.following_id)));
 
-      // Preferenze: tag dei post che l'utente ha già messo tra i preferiti o a cui ha messo like
-      const liked = new Set<string>();
-      list.forEach((p) => (p.tags || []).forEach((t) => liked.add(t)));
+      // Preferenze: tag dei post che l'utente ha già salvato tra i preferiti
       const { data: prefRows } = await supabase.from('post_saves').select('post_id').eq('user_id', user.id);
       const savedIds = new Set((prefRows || []).map((s: any) => s.post_id));
       const prefTags = new Set<string>();
