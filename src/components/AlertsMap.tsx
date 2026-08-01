@@ -4,7 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, X, Loader2, Plus } from 'lucide-react';
+import { Search, X, Loader2, Plus, AlertTriangle, PartyPopper, Navigation } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
