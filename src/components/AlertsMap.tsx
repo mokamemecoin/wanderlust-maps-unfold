@@ -10,9 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import AlertDetailSheet, {
   AlertItem,
-  ALERT_CATEGORIES,
   categoryMeta,
-  formatRemaining,
 } from '@/components/AlertDetailSheet';
 
 const MARKER_STYLE = `
@@ -27,15 +25,31 @@ const MARKER_STYLE = `
     font-size:10px; line-height:1; font-weight:600; color:#fff; background:rgba(0,0,0,.72);
     border-radius:9999px; padding:3px 6px;
   }
+  .nearby-marker .nearby-bubble {
+    width: 40px; height: 40px; border-radius: 9999px; overflow: hidden;
+    border: 3px solid #22c55e; box-shadow: 0 2px 8px rgba(0,0,0,.35); background: #e5e7eb;
+  }
+  .nearby-marker .nearby-bubble img { width: 100%; height: 100%; object-fit: cover; display:block; }
+  .nearby-marker .nearby-initials {
+    width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+    font-size:14px; font-weight:700; color:#374151;
+  }
 `;
 
 const EMOJI: Record<string, string> = {
   danger: '⚠',
-  service: '🛠',
-  traffic: '🚗',
-  weather: '🌧',
-  other: 'ℹ',
+  event: '🎉',
 };
+
+type FilterKey = 'danger' | 'event' | 'nearby';
+
+interface NearbyUser {
+  user_id: string;
+  name: string;
+  latitude: number;
+  longitude: number;
+  avatar_url?: string | null;
+}
 
 const AlertsMap = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -44,7 +58,9 @@ const AlertsMap = () => {
   const [alerts, setAlerts] = useState<AlertItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
-  const [category, setCategory] = useState<string | null>(null);
+  const [filter, setFilter] = useState<FilterKey | null>(null);
+  const [nearby, setNearby] = useState<NearbyUser[]>([]);
+  const [locating, setLocating] = useState(false);
   const [selected, setSelected] = useState<AlertItem | null>(null);
   const [tick, setTick] = useState(0);
   const { toast } = useToast();
@@ -123,17 +139,19 @@ const AlertsMap = () => {
     if (!layer) return;
     layer.clearLayers();
 
-    const visible = alerts.filter(
-      (a) =>
-        new Date(a.expires_at).getTime() > Date.now() && (!category || a.category === category)
-    );
+    const visible =
+      filter === 'nearby'
+        ? []
+        : alerts.filter(
+            (a) =>
+              new Date(a.expires_at).getTime() > Date.now() && (!filter || a.category === filter)
+          );
 
     visible.forEach((alert) => {
       const meta = categoryMeta(alert.category);
       const icon = L.divIcon({
         html: `<div style="position:relative;width:34px;height:34px;">
-            <div class="alert-bubble" style="background:${meta.color}">${EMOJI[alert.category] || 'ℹ'}</div>
-            <span class="alert-timer">${formatRemaining(alert.expires_at) ?? '0m'}</span>
+            <div class="alert-bubble" style="background:${meta.color}">${EMOJI[alert.category] || '⚠'}</div>
           </div>`,
         iconSize: [34, 34],
         iconAnchor: [17, 17],
@@ -143,7 +161,86 @@ const AlertsMap = () => {
         .on('click', () => setSelected(alert))
         .addTo(layer);
     });
-  }, [alerts, category, tick]);
+
+    if (filter === 'nearby') {
+      nearby.forEach((n) => {
+        const inner = n.avatar_url
+          ? `<img src="${n.avatar_url}" alt="${n.name}" />`
+          : `<div class="nearby-initials">${(n.name || '?').charAt(0).toUpperCase()}</div>`;
+        const icon = L.divIcon({
+          html: `<div class="nearby-bubble">${inner}</div>`,
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+          className: 'nearby-marker',
+        });
+        L.marker([n.latitude, n.longitude], { icon })
+          .bindPopup(`<strong>${n.name}</strong>`)
+          .addTo(layer);
+      });
+    }
+  }, [alerts, filter, nearby, tick]);
+
+  const loadNearby = useCallback(async (lat: number, lng: number) => {
+    const { data, error } = await supabase
+      .from('travelers')
+      .select('user_id, name, latitude, longitude')
+      .not('user_id', 'is', null);
+    if (error) {
+      console.error('Error loading nearby users:', error);
+      return;
+    }
+    const rows = (data || [])
+      .map((t: any) => ({
+        user_id: t.user_id as string,
+        name: t.name as string,
+        latitude: Number(t.latitude),
+        longitude: Number(t.longitude),
+      }))
+      // entro ~100 km dalla posizione dell'utente
+      .filter(
+        (t) =>
+          Math.abs(t.latitude - lat) < 1 && Math.abs(t.longitude - lng) < 1.4
+      );
+
+    const ids = Array.from(new Set(rows.map((r) => r.user_id)));
+    let avatars: Record<string, string | null> = {};
+    if (ids.length) {
+      const { data: profs } = await supabase
+        .from('profiles')
+        .select('user_id, avatar_url, first_name, last_name')
+        .in('user_id', ids);
+      (profs || []).forEach((p: any) => {
+        avatars[p.user_id] = p.avatar_url;
+      });
+    }
+    setNearby(rows.map((r) => ({ ...r, avatar_url: avatars[r.user_id] ?? null })));
+  }, []);
+
+  const enableNearby = () => {
+    if (!('geolocation' in navigator)) {
+      toast({ description: 'GPS non disponibile su questo dispositivo.', variant: 'destructive' });
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        map.current?.flyTo([latitude, longitude], 11);
+        await loadNearby(latitude, longitude);
+        setFilter('nearby');
+        setLocating(false);
+      },
+      () => {
+        setLocating(false);
+        toast({
+          title: 'Posizione non attiva',
+          description: 'Attiva il GPS per vedere le persone vicino a te.',
+          variant: 'destructive',
+        });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const handleSearch = async () => {
     const q = searchQuery.trim();
@@ -230,22 +327,34 @@ const AlertsMap = () => {
         {/* Filtri categoria */}
         <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-1">
           <Badge
-            onClick={() => setCategory(null)}
-            variant={category === null ? 'default' : 'secondary'}
+            onClick={() => setFilter(null)}
+            variant={filter === null ? 'default' : 'secondary'}
             className="cursor-pointer shrink-0 shadow"
           >
             Tutti ({alerts.length})
           </Badge>
-          {ALERT_CATEGORIES.map((c) => (
-            <Badge
-              key={c.value}
-              onClick={() => setCategory(category === c.value ? null : c.value)}
-              variant={category === c.value ? 'default' : 'secondary'}
-              className="cursor-pointer shrink-0 shadow"
-            >
-              {c.label}
-            </Badge>
-          ))}
+          <Badge
+            onClick={() => setFilter(filter === 'danger' ? null : 'danger')}
+            variant={filter === 'danger' ? 'default' : 'secondary'}
+            className="cursor-pointer shrink-0 shadow gap-1"
+          >
+            <AlertTriangle className="w-3 h-3" /> Pericolo
+          </Badge>
+          <Badge
+            onClick={() => setFilter(filter === 'event' ? null : 'event')}
+            variant={filter === 'event' ? 'default' : 'secondary'}
+            className="cursor-pointer shrink-0 shadow gap-1"
+          >
+            <PartyPopper className="w-3 h-3" /> Eventi
+          </Badge>
+          <Badge
+            onClick={() => (filter === 'nearby' ? setFilter(null) : enableNearby())}
+            variant={filter === 'nearby' ? 'default' : 'secondary'}
+            className="cursor-pointer shrink-0 shadow gap-1"
+          >
+            {locating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Navigation className="w-3 h-3" />}
+            Vicino a me
+          </Badge>
         </div>
       </div>
 
