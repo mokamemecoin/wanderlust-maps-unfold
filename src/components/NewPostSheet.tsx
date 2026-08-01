@@ -334,11 +334,11 @@ const NewPostSheet = ({ open, onOpenChange, initialMode = null }: NewPostSheetPr
             )}
             <div className="text-left">
               <DrawerTitle>
-                {mode === 'alert' ? 'Segnalazione Live 24h' : mode === 'post' ? 'Consiglio o Post di Viaggio' : 'Cosa vuoi pubblicare?'}
+                {mode === 'alert' ? 'Pericolo o Evento' : mode === 'post' ? 'Consiglio o Post di Viaggio' : 'Cosa vuoi pubblicare?'}
               </DrawerTitle>
               <DrawerDescription>
                 {mode === 'alert'
-                  ? 'Visibile sulla mappa per 24 ore, poi sparisce.'
+                  ? 'Scegli il tipo, il punto sulla mappa e per quanto tempo resta attivo.'
                   : mode === 'post'
                   ? 'Foto, titolo e consigli: finisce nel feed Esplora.'
                   : 'Scegli il tipo di contenuto da condividere.'}
@@ -359,9 +359,9 @@ const NewPostSheet = ({ open, onOpenChange, initialMode = null }: NewPostSheetPr
                   <AlertTriangle className="w-5 h-5" />
                 </span>
                 <span>
-                  <span className="block font-semibold">Segnalazione Live 24h</span>
+                  <span className="block font-semibold">Pericolo o Evento</span>
                   <span className="block text-sm text-muted-foreground">
-                    Pericoli o servizi temporanei da mostrare sulla mappa.
+                    Segnala un pericolo o un evento da mostrare sulla mappa.
                   </span>
                 </span>
               </button>
@@ -423,6 +423,25 @@ const NewPostSheet = ({ open, onOpenChange, initialMode = null }: NewPostSheetPr
                   rows={3}
                   className="mt-1 bg-card text-foreground border-border"
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="alert-duration" className="text-sm">Durata</Label>
+                <Select value={durationHours} onValueChange={setDurationHours}>
+                  <SelectTrigger id="alert-duration" className="mt-1 bg-card text-foreground border-border">
+                    <SelectValue placeholder="Scegli la durata" />
+                  </SelectTrigger>
+                  <SelectContent className="z-[1300]">
+                    {DURATION_OPTIONS.map((d) => (
+                      <SelectItem key={d.value} value={d.value}>
+                        {d.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Dopo questo tempo la segnalazione sparisce automaticamente dalla mappa.
+                </p>
               </div>
 
               {locationBlock(true)}
