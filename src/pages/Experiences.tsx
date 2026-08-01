@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, Bookmark, MapPin, Share2, Loader2, Plus } from 'lucide-react';
+import { Heart, Bookmark, MapPin, Share2, Loader2, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,6 +18,8 @@ interface FeedPost {
   description: string | null;
   photo_url: string | null;
   location: string | null;
+  latitude: number | null;
+  longitude: number | null;
   tags: string[] | null;
   created_at: string;
 }
@@ -31,17 +33,37 @@ const timeAgo = (iso: string) => {
   return `${Math.floor(h / 24)} giorni fa`;
 };
 
+/** Distanza approssimata in km tra due coordinate. */
+const distanceKm = (aLat: number, aLng: number, bLat: number, bLng: number) => {
+  const dLat = (aLat - bLat) * 111;
+  const dLng = (aLng - bLng) * 111 * Math.cos((aLat * Math.PI) / 180);
+  return Math.sqrt(dLat * dLat + dLng * dLng);
+};
+
 const Experiences = () => {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [profiles, setProfiles] = useState<Record<string, any>>({});
   const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
   const [myLikes, setMyLikes] = useState<Set<string>>(new Set());
   const [mySaves, setMySaves] = useState<Set<string>>(new Set());
+  const [following, setFollowing] = useState<Set<string>>(new Set());
+  const [myTags, setMyTags] = useState<Set<string>>(new Set());
+  const [myCoords, setMyCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'all' | 'saved'>('all');
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  // Posizione attuale (se concessa) per ordinare i post più vicini
+  useEffect(() => {
+    if (!('geolocation' in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (p) => setMyCoords({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      () => undefined,
+      { timeout: 8000 }
+    );
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -84,6 +106,28 @@ const Experiences = () => {
       } else {
         setMySaves(new Set());
       }
+    }
+
+    if (user) {
+      const { data: followRows } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', user.id);
+      setFollowing(new Set((followRows || []).map((f: any) => f.following_id)));
+
+      // Preferenze: tag dei post che l'utente ha già messo tra i preferiti o a cui ha messo like
+      const liked = new Set<string>();
+      list.forEach((p) => (p.tags || []).forEach((t) => liked.add(t)));
+      const { data: prefRows } = await supabase.from('post_saves').select('post_id').eq('user_id', user.id);
+      const savedIds = new Set((prefRows || []).map((s: any) => s.post_id));
+      const prefTags = new Set<string>();
+      list.forEach((p) => {
+        if (savedIds.has(p.id)) (p.tags || []).forEach((t) => prefTags.add(t));
+      });
+      setMyTags(prefTags);
+    } else {
+      setFollowing(new Set());
+      setMyTags(new Set());
     }
     setLoading(false);
   }, [user]);
@@ -157,7 +201,25 @@ const Experiences = () => {
     }
   };
 
-  const visible = tab === 'saved' ? posts.filter((p) => mySaves.has(p.id)) : posts;
+  const score = (p: FeedPost) => {
+    let s = 0;
+    if (following.has(p.user_id)) s += 100;
+    if (myCoords && p.latitude != null && p.longitude != null) {
+      const d = distanceKm(myCoords.lat, myCoords.lng, Number(p.latitude), Number(p.longitude));
+      if (d < 50) s += 60;
+      else if (d < 200) s += 35;
+      else if (d < 1000) s += 15;
+    }
+    if ((p.tags || []).some((t) => myTags.has(t))) s += 25;
+    // freschezza: fino a 20 punti per i post delle ultime 48 ore
+    const hours = (Date.now() - new Date(p.created_at).getTime()) / 3_600_000;
+    s += Math.max(0, 20 - hours / 2.4);
+    return s;
+  };
+
+  const visible = (tab === 'saved' ? posts.filter((p) => mySaves.has(p.id)) : posts)
+    .slice()
+    .sort((a, b) => score(b) - score(a));
 
   const authorName = (userId: string) => {
     const p = profiles[userId];
@@ -172,13 +234,8 @@ const Experiences = () => {
             <MiomondoLogo size="w-6 h-6" />
             <span className="text-lg font-bold text-foreground">Esplora</span>
           </Link>
-          <Button
-            size="sm"
-            onClick={() =>
-              window.dispatchEvent(new CustomEvent('open-new-post', { detail: { mode: 'post' } }))
-            }
-          >
-            <Plus className="w-4 h-4 mr-1" /> Post
+          <Button size="sm" variant="secondary" onClick={() => navigate('/friends')}>
+            <Search className="w-4 h-4 mr-1" /> Amici
           </Button>
         </div>
         <p className="text-sm text-muted-foreground mb-3">
