@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, MapPin, Calendar, LogOut, Plus, Edit, Phone, Mail, Globe, Images } from "lucide-react";
+import { User, MapPin, Calendar, LogOut, Plus, Edit, Phone, Mail, Globe, Images, Share2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
 import { AddTripDialog } from "@/components/AddTripDialog";
 import ProfileTravelMap from "@/components/ProfileTravelMap";
 import ProfilePostsGrid from "@/components/ProfilePostsGrid";
+import PassportStoryCard from "@/components/PassportStoryCard";
 import { useVisitedCountries } from "@/hooks/useVisitedCountries";
 import { Progress } from "@/components/ui/progress";
 
@@ -23,6 +24,7 @@ const Profile = () => {
   const [userPosts, setUserPosts] = useState<any[]>([]);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showAddTrip, setShowAddTrip] = useState(false);
+  const [showPassport, setShowPassport] = useState(false);
 
   // Protect route - require authentication
   useRouteProtection(true);
@@ -225,6 +227,15 @@ const Profile = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <ProfileTravelMap places={places} countries={countries} />
+
+            <Button
+              className="w-full"
+              size="lg"
+              onClick={() => setShowPassport(true)}
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Condividi il tuo Passaporto
+            </Button>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-xl bg-muted/50 p-4 text-center">
