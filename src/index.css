@@ -58,6 +58,17 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    /* Passport story card (fixed palette — rendered to a shareable image) */
+    --passport-bg: 20 30% 12%;
+    --passport-bg-deep: 18 35% 8%;
+    --passport-surface: 20 25% 17%;
+    --passport-ink: 32 40% 94%;
+    --passport-muted: 28 15% 68%;
+    --passport-accent: 18 72% 55%;
+    --passport-accent-soft: 30 65% 62%;
+    --passport-land: 24 12% 27%;
+    --gradient-passport: radial-gradient(120% 80% at 50% 0%, hsl(20 40% 20%), hsl(var(--passport-bg-deep)));
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
