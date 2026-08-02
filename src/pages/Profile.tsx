@@ -376,6 +376,17 @@ const Profile = () => {
         user={user}
         onTripAdded={loadUserData}
       />
+
+      <PassportStoryCard
+        open={showPassport}
+        onOpenChange={setShowPassport}
+        displayName={displayName}
+        initials={typeof initials === "string" ? initials : undefined}
+        avatarUrl={userProfile?.avatar_url}
+        places={places}
+        countries={countries}
+        worldPercentage={worldPercentage}
+      />
     </div>
   );
 };
