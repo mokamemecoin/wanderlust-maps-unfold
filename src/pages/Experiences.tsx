@@ -92,15 +92,19 @@ const Experiences = () => {
     }
 
     if (ids.length) {
-      const { data: likeRows } = await supabase.from('post_likes').select('post_id, user_id').in('post_id', ids);
+      const { data: reactionRows } = await supabase
+        .from('post_reactions')
+        .select('post_id, user_id, reaction')
+        .in('post_id', ids)
+        .eq('reaction', 'hungry');
       const counts: Record<string, number> = {};
       const mine = new Set<string>();
-      (likeRows || []).forEach((l: any) => {
-        counts[l.post_id] = (counts[l.post_id] || 0) + 1;
-        if (user && l.user_id === user.id) mine.add(l.post_id);
+      (reactionRows || []).forEach((r: any) => {
+        counts[r.post_id] = (counts[r.post_id] || 0) + 1;
+        if (user && r.user_id === user.id) mine.add(r.post_id);
       });
-      setLikeCounts(counts);
-      setMyLikes(mine);
+      setHungryCounts(counts);
+      setMyHungry(mine);
 
       if (user) {
         const { data: saveRows } = await supabase.from('post_saves').select('post_id').eq('user_id', user.id);
@@ -149,19 +153,26 @@ const Experiences = () => {
     return false;
   };
 
-  const toggleLike = async (postId: string) => {
+  const toggleHungry = async (postId: string) => {
     if (!requireAuth() || !user) return;
-    const liked = myLikes.has(postId);
-    setMyLikes((prev) => {
+    const active = myHungry.has(postId);
+    setMyHungry((prev) => {
       const next = new Set(prev);
-      liked ? next.delete(postId) : next.add(postId);
+      active ? next.delete(postId) : next.add(postId);
       return next;
     });
-    setLikeCounts((prev) => ({ ...prev, [postId]: Math.max(0, (prev[postId] || 0) + (liked ? -1 : 1)) }));
+    setHungryCounts((prev) => ({ ...prev, [postId]: Math.max(0, (prev[postId] || 0) + (active ? -1 : 1)) }));
 
-    const { error } = liked
-      ? await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', user.id)
-      : await supabase.from('post_likes').insert({ post_id: postId, user_id: user.id });
+    const { error } = active
+      ? await supabase
+          .from('post_reactions')
+          .delete()
+          .eq('post_id', postId)
+          .eq('user_id', user.id)
+          .eq('reaction', 'hungry')
+      : await supabase
+          .from('post_reactions')
+          .insert({ post_id: postId, user_id: user.id, reaction: 'hungry' });
     if (error) {
       toast({ description: 'Operazione non riuscita.', variant: 'destructive' });
       load();
@@ -184,7 +195,7 @@ const Experiences = () => {
       load();
       return;
     }
-    toast({ description: saved ? 'Rimosso dai preferiti' : 'Salvato tra i preferiti' });
+    toast({ description: saved ? 'Rimosso dai preferiti' : 'Ispirato! Salvato tra i preferiti' });
   };
 
   const share = async (post: FeedPost) => {
