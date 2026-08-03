@@ -245,9 +245,19 @@ const Experiences = () => {
             <MiomondoLogo size="w-6 h-6" />
             <span className="text-lg font-bold text-foreground">Esplora</span>
           </Link>
-          <Button size="sm" variant="secondary" onClick={() => navigate('/friends')}>
-            <Search className="w-4 h-4 mr-1" /> Amici
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="secondary" onClick={() => navigate('/friends')}>
+              <Search className="w-4 h-4 mr-1" /> Amici
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => navigate('/messages')}
+              aria-label="Apri messaggi"
+            >
+              <MessageCircle className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
         <p className="text-sm text-muted-foreground mb-3">
           Consigli, foto e posti particolari condivisi dalla community
@@ -325,30 +335,52 @@ const Experiences = () => {
                 </div>
               )}
 
-              <div className="flex items-center justify-between border-t pt-2">
-                <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => toggleLike(post.id)} aria-label="Mi piace">
-                    <Heart
-                      className={`w-5 h-5 mr-1 ${myLikes.has(post.id) ? 'fill-red-500 text-red-500' : ''}`}
-                    />
-                    <span className="text-sm">{likeCounts[post.id] || 0}</span>
-                  </Button>
+              <div className="flex items-center justify-between border-t pt-2 gap-1">
+                <div className="flex items-center gap-1 flex-wrap">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => toggleSave(post.id)}
-                    aria-label="Salva tra i preferiti"
+                    aria-label="Ispirato: salva tra i preferiti"
+                    className="px-2"
                   >
-                    <Bookmark
-                      className={`w-5 h-5 mr-1 ${mySaves.has(post.id) ? 'fill-current text-primary' : ''}`}
+                    <Sparkles
+                      className={`w-4 h-4 mr-1 ${mySaves.has(post.id) ? 'fill-current text-primary' : ''}`}
                     />
-                    <span className="text-sm">{mySaves.has(post.id) ? 'Salvato' : 'Salva'}</span>
+                    <span className="text-xs">Ispirato</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleHungry(post.id)}
+                    aria-label="Fa venire fame"
+                    className="px-2"
+                  >
+                    <UtensilsCrossed
+                      className={`w-4 h-4 mr-1 ${myHungry.has(post.id) ? 'text-primary' : ''}`}
+                    />
+                    <span className="text-xs">Fa venire fame {hungryCounts[post.id] || 0}</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setOpenComments((prev) => ({ ...prev, [post.id]: !prev[post.id] }))
+                    }
+                    aria-expanded={!!openComments[post.id]}
+                    aria-label="Chiedi info nei commenti"
+                    className="px-2"
+                  >
+                    <MessageCircleQuestion className="w-4 h-4 mr-1" />
+                    <span className="text-xs">Chiedi info</span>
                   </Button>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => share(post)} aria-label="Condividi">
                   <Share2 className="w-5 h-5" />
                 </Button>
               </div>
+
+              {openComments[post.id] && <PostComments postId={post.id} />}
             </CardContent>
           </Card>
         ))}
