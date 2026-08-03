@@ -6,10 +6,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, Bookmark, MapPin, Share2, Loader2, Search } from 'lucide-react';
+import { Sparkles, UtensilsCrossed, MessageCircleQuestion, MapPin, Share2, Loader2, Search, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import PostComments from '@/components/PostComments';
 
 interface FeedPost {
   id: string;
@@ -43,8 +44,9 @@ const distanceKm = (aLat: number, aLng: number, bLat: number, bLng: number) => {
 const Experiences = () => {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [profiles, setProfiles] = useState<Record<string, any>>({});
-  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
-  const [myLikes, setMyLikes] = useState<Set<string>>(new Set());
+  const [hungryCounts, setHungryCounts] = useState<Record<string, number>>({});
+  const [myHungry, setMyHungry] = useState<Set<string>>(new Set());
+  const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
   const [mySaves, setMySaves] = useState<Set<string>>(new Set());
   const [following, setFollowing] = useState<Set<string>>(new Set());
   const [myTags, setMyTags] = useState<Set<string>>(new Set());
@@ -90,15 +92,19 @@ const Experiences = () => {
     }
 
     if (ids.length) {
-      const { data: likeRows } = await supabase.from('post_likes').select('post_id, user_id').in('post_id', ids);
+      const { data: reactionRows } = await supabase
+        .from('post_reactions')
+        .select('post_id, user_id, reaction')
+        .in('post_id', ids)
+        .eq('reaction', 'hungry');
       const counts: Record<string, number> = {};
       const mine = new Set<string>();
-      (likeRows || []).forEach((l: any) => {
-        counts[l.post_id] = (counts[l.post_id] || 0) + 1;
-        if (user && l.user_id === user.id) mine.add(l.post_id);
+      (reactionRows || []).forEach((r: any) => {
+        counts[r.post_id] = (counts[r.post_id] || 0) + 1;
+        if (user && r.user_id === user.id) mine.add(r.post_id);
       });
-      setLikeCounts(counts);
-      setMyLikes(mine);
+      setHungryCounts(counts);
+      setMyHungry(mine);
 
       if (user) {
         const { data: saveRows } = await supabase.from('post_saves').select('post_id').eq('user_id', user.id);
@@ -147,19 +153,26 @@ const Experiences = () => {
     return false;
   };
 
-  const toggleLike = async (postId: string) => {
+  const toggleHungry = async (postId: string) => {
     if (!requireAuth() || !user) return;
-    const liked = myLikes.has(postId);
-    setMyLikes((prev) => {
+    const active = myHungry.has(postId);
+    setMyHungry((prev) => {
       const next = new Set(prev);
-      liked ? next.delete(postId) : next.add(postId);
+      active ? next.delete(postId) : next.add(postId);
       return next;
     });
-    setLikeCounts((prev) => ({ ...prev, [postId]: Math.max(0, (prev[postId] || 0) + (liked ? -1 : 1)) }));
+    setHungryCounts((prev) => ({ ...prev, [postId]: Math.max(0, (prev[postId] || 0) + (active ? -1 : 1)) }));
 
-    const { error } = liked
-      ? await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', user.id)
-      : await supabase.from('post_likes').insert({ post_id: postId, user_id: user.id });
+    const { error } = active
+      ? await supabase
+          .from('post_reactions')
+          .delete()
+          .eq('post_id', postId)
+          .eq('user_id', user.id)
+          .eq('reaction', 'hungry')
+      : await supabase
+          .from('post_reactions')
+          .insert({ post_id: postId, user_id: user.id, reaction: 'hungry' });
     if (error) {
       toast({ description: 'Operazione non riuscita.', variant: 'destructive' });
       load();
@@ -182,7 +195,7 @@ const Experiences = () => {
       load();
       return;
     }
-    toast({ description: saved ? 'Rimosso dai preferiti' : 'Salvato tra i preferiti' });
+    toast({ description: saved ? 'Rimosso dai preferiti' : 'Ispirato! Salvato tra i preferiti' });
   };
 
   const share = async (post: FeedPost) => {
@@ -232,9 +245,19 @@ const Experiences = () => {
             <MiomondoLogo size="w-6 h-6" />
             <span className="text-lg font-bold text-foreground">Esplora</span>
           </Link>
-          <Button size="sm" variant="secondary" onClick={() => navigate('/friends')}>
-            <Search className="w-4 h-4 mr-1" /> Amici
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="secondary" onClick={() => navigate('/friends')}>
+              <Search className="w-4 h-4 mr-1" /> Amici
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => navigate('/messages')}
+              aria-label="Apri messaggi"
+            >
+              <MessageCircle className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
         <p className="text-sm text-muted-foreground mb-3">
           Consigli, foto e posti particolari condivisi dalla community
@@ -312,30 +335,52 @@ const Experiences = () => {
                 </div>
               )}
 
-              <div className="flex items-center justify-between border-t pt-2">
-                <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => toggleLike(post.id)} aria-label="Mi piace">
-                    <Heart
-                      className={`w-5 h-5 mr-1 ${myLikes.has(post.id) ? 'fill-red-500 text-red-500' : ''}`}
-                    />
-                    <span className="text-sm">{likeCounts[post.id] || 0}</span>
-                  </Button>
+              <div className="flex items-center justify-between border-t pt-2 gap-1">
+                <div className="flex items-center gap-1 flex-wrap">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => toggleSave(post.id)}
-                    aria-label="Salva tra i preferiti"
+                    aria-label="Ispirato: salva tra i preferiti"
+                    className="px-2"
                   >
-                    <Bookmark
-                      className={`w-5 h-5 mr-1 ${mySaves.has(post.id) ? 'fill-current text-primary' : ''}`}
+                    <Sparkles
+                      className={`w-4 h-4 mr-1 ${mySaves.has(post.id) ? 'fill-current text-primary' : ''}`}
                     />
-                    <span className="text-sm">{mySaves.has(post.id) ? 'Salvato' : 'Salva'}</span>
+                    <span className="text-xs">Ispirato</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleHungry(post.id)}
+                    aria-label="Fa venire fame"
+                    className="px-2"
+                  >
+                    <UtensilsCrossed
+                      className={`w-4 h-4 mr-1 ${myHungry.has(post.id) ? 'text-primary' : ''}`}
+                    />
+                    <span className="text-xs">Fa venire fame {hungryCounts[post.id] || 0}</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() =>
+                      setOpenComments((prev) => ({ ...prev, [post.id]: !prev[post.id] }))
+                    }
+                    aria-expanded={!!openComments[post.id]}
+                    aria-label="Chiedi info nei commenti"
+                    className="px-2"
+                  >
+                    <MessageCircleQuestion className="w-4 h-4 mr-1" />
+                    <span className="text-xs">Chiedi info</span>
                   </Button>
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => share(post)} aria-label="Condividi">
                   <Share2 className="w-5 h-5" />
                 </Button>
               </div>
+
+              {openComments[post.id] && <PostComments postId={post.id} />}
             </CardContent>
           </Card>
         ))}

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Loader2, Search, UserPlus, UserCheck } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ArrowLeft, Loader2, MessageCircle, Search, UserPlus, UserCheck } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,7 @@ const Friends = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -131,21 +132,33 @@ const Friends = () => {
                 <p className="text-xs text-muted-foreground truncate">{p.location}</p>
               )}
             </div>
-            <Button
-              size="sm"
-              variant={following.has(p.user_id) ? 'secondary' : 'default'}
-              onClick={() => toggleFollow(p.user_id)}
-            >
-              {following.has(p.user_id) ? (
-                <>
-                  <UserCheck className="w-4 h-4 mr-1" /> Segui già
-                </>
-              ) : (
-                <>
-                  <UserPlus className="w-4 h-4 mr-1" /> Segui
-                </>
-              )}
-            </Button>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  user ? navigate(`/messages/${p.user_id}`) : navigate('/login')
+                }
+                aria-label={`Invia messaggio a ${fullName(p)}`}
+              >
+                <MessageCircle className="w-4 h-4 mr-1" /> Messaggio
+              </Button>
+              <Button
+                size="sm"
+                variant={following.has(p.user_id) ? 'secondary' : 'default'}
+                onClick={() => toggleFollow(p.user_id)}
+              >
+                {following.has(p.user_id) ? (
+                  <>
+                    <UserCheck className="w-4 h-4 mr-1" /> Segui già
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-4 h-4 mr-1" /> Segui
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         ))}
       </main>
