@@ -6,10 +6,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Heart, Bookmark, MapPin, Share2, Loader2, Search } from 'lucide-react';
+import { Sparkles, UtensilsCrossed, MessageCircleQuestion, MapPin, Share2, Loader2, Search, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import PostComments from '@/components/PostComments';
 
 interface FeedPost {
   id: string;
@@ -43,8 +44,9 @@ const distanceKm = (aLat: number, aLng: number, bLat: number, bLng: number) => {
 const Experiences = () => {
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [profiles, setProfiles] = useState<Record<string, any>>({});
-  const [likeCounts, setLikeCounts] = useState<Record<string, number>>({});
-  const [myLikes, setMyLikes] = useState<Set<string>>(new Set());
+  const [hungryCounts, setHungryCounts] = useState<Record<string, number>>({});
+  const [myHungry, setMyHungry] = useState<Set<string>>(new Set());
+  const [openComments, setOpenComments] = useState<Record<string, boolean>>({});
   const [mySaves, setMySaves] = useState<Set<string>>(new Set());
   const [following, setFollowing] = useState<Set<string>>(new Set());
   const [myTags, setMyTags] = useState<Set<string>>(new Set());
