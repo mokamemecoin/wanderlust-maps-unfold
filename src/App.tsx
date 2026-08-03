@@ -16,6 +16,8 @@ import Signup from "./pages/Signup";
 import Login from "./pages/Login";
 import Experiences from "./pages/Experiences";
 import Friends from "./pages/Friends";
+import Messages from "./pages/Messages";
+import Chat from "./pages/Chat";
 import NewPost from "./pages/NewPost";
 import About from "./pages/About";
 import Profile from "./pages/Profile";
@@ -68,6 +70,8 @@ const App = () => (
               <Route path="/trips" element={<Trips />} />
               <Route path="/experiences" element={<Experiences />} />
               <Route path="/friends" element={<Friends />} />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/messages/:userId" element={<Chat />} />
               <Route path="/post" element={<NewPost />} />
               <Route path="/about" element={<About />} />
               <Route path="/profile" element={<Profile />} />
