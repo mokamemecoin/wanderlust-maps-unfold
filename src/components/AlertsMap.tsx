@@ -12,6 +12,7 @@ import AlertDetailSheet, {
   AlertItem,
   categoryMeta,
 } from '@/components/AlertDetailSheet';
+import NearbyUserSheet, { NearbyUserInfo } from '@/components/NearbyUserSheet';
 
 const MARKER_STYLE = `
   @keyframes alert-pulse { 0%{transform:scale(1);opacity:1} 50%{transform:scale(1.15);opacity:.75} 100%{transform:scale(1);opacity:1} }
@@ -60,6 +61,7 @@ const AlertsMap = () => {
   const [searching, setSearching] = useState(false);
   const [filter, setFilter] = useState<FilterKey | null>(null);
   const [nearby, setNearby] = useState<NearbyUser[]>([]);
+  const [selectedPerson, setSelectedPerson] = useState<NearbyUser | null>(null);
   const [locating, setLocating] = useState(false);
   const [selected, setSelected] = useState<AlertItem | null>(null);
   const [tick, setTick] = useState(0);
@@ -174,7 +176,7 @@ const AlertsMap = () => {
           className: 'nearby-marker',
         });
         L.marker([n.latitude, n.longitude], { icon })
-          .bindPopup(`<strong>${n.name}</strong>`)
+          .on('click', () => setSelectedPerson(n))
           .addTo(layer);
       });
     }
@@ -376,6 +378,12 @@ const AlertsMap = () => {
         onOpenChange={(open) => !open && setSelected(null)}
         canDelete={!!user && selected?.user_id === user.id}
         onDelete={handleDelete}
+      />
+
+      <NearbyUserSheet
+        person={selectedPerson as NearbyUserInfo | null}
+        open={!!selectedPerson}
+        onOpenChange={(open) => !open && setSelectedPerson(null)}
       />
     </div>
   );
