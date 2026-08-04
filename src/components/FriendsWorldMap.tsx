@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Button } from '@/components/ui/button';
-import { Loader2, Coffee } from 'lucide-react';
+import { Loader2, Coffee, MapPin } from 'lucide-react';
 import {
   Drawer,
   DrawerContent,
@@ -10,6 +10,14 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -86,6 +94,8 @@ const FriendsWorldMap = () => {
   const [nearby, setNearby] = useState<NearbyUser[]>([]);
   const [selectedPerson, setSelectedPerson] = useState<NearbyUser | null>(null);
   const [locating, setLocating] = useState(false);
+  const [permissionOpen, setPermissionOpen] = useState(false);
+  const [permissionUnsupported, setPermissionUnsupported] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -275,11 +285,13 @@ const FriendsWorldMap = () => {
     }
   }, [toast, user]);
 
-  const handleCoffee = () => {
+  const requestLocation = () => {
     if (!('geolocation' in navigator)) {
-      toast({ description: 'GPS non disponibile su questo dispositivo.', variant: 'destructive' });
+      setPermissionUnsupported(true);
+      setPermissionOpen(true);
       return;
     }
+    setPermissionUnsupported(false);
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -290,14 +302,28 @@ const FriendsWorldMap = () => {
       },
       () => {
         setLocating(false);
-        toast({
-          title: 'Posizione non attiva',
-          description: 'Attiva il GPS per trovare chi è vicino a te.',
-          variant: 'destructive',
-        });
+        setPermissionOpen(true);
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
+  };
+
+  const handleCoffee = () => {
+    setPermissionOpen(false);
+    requestLocation();
+  };
+
+  const enableSimulation = () => {
+    setPermissionOpen(false);
+    const centerLat = 41.9028;
+    const centerLng = 12.4964;
+    map.current?.flyTo([centerLat, centerLng], 13);
+    const demo: NearbyUser[] = [
+      { user_id: 'demo-1', name: 'Luca', avatar_url: null, latitude: centerLat + 0.002, longitude: centerLng + 0.003 },
+      { user_id: 'demo-2', name: 'Sofia', avatar_url: null, latitude: centerLat - 0.002, longitude: centerLng - 0.001 },
+      { user_id: 'demo-3', name: 'Marco', avatar_url: null, latitude: centerLat + 0.001, longitude: centerLng - 0.003 },
+    ].filter((d) => d.user_id !== user?.id);
+    setNearby(demo);
   };
 
   return (
@@ -349,6 +375,35 @@ const FriendsWorldMap = () => {
         open={!!selectedPerson}
         onOpenChange={(open) => !open && setSelectedPerson(null)}
       />
+
+      <Dialog open={permissionOpen} onOpenChange={setPermissionOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader className="items-center text-center">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+              <MapPin className="w-6 h-6 text-primary" />
+            </div>
+            <DialogTitle>Prendiamo un caffè?</DialogTitle>
+            <DialogDescription>
+              {permissionUnsupported
+                ? 'Il tuo browser non supporta la geolocalizzazione. Attiva il GPS dal dispositivo per usare questa funzione.'
+                : 'Attiva la posizione per scoprire chi si trova nelle tue vicinanze e fare due chiacchiere.'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            {!permissionUnsupported && (
+              <Button className="w-full rounded-full" onClick={requestLocation}>
+                Attiva Posizione
+              </Button>
+            )}
+            <Button variant="outline" className="w-full rounded-full" onClick={() => setPermissionOpen(false)}>
+              {permissionUnsupported ? 'Chiudi' : 'Annulla'}
+            </Button>
+            <Button variant="ghost" className="w-full text-muted-foreground" onClick={enableSimulation}>
+              Prova modalità simulazione
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
