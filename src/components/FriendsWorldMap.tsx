@@ -285,11 +285,13 @@ const FriendsWorldMap = () => {
     }
   }, [toast, user]);
 
-  const handleCoffee = () => {
+  const requestLocation = () => {
     if (!('geolocation' in navigator)) {
-      toast({ description: 'GPS non disponibile su questo dispositivo.', variant: 'destructive' });
+      setPermissionUnsupported(true);
+      setPermissionOpen(true);
       return;
     }
+    setPermissionUnsupported(false);
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
@@ -300,14 +302,28 @@ const FriendsWorldMap = () => {
       },
       () => {
         setLocating(false);
-        toast({
-          title: 'Posizione non attiva',
-          description: 'Attiva il GPS per trovare chi è vicino a te.',
-          variant: 'destructive',
-        });
+        setPermissionOpen(true);
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
+  };
+
+  const handleCoffee = () => {
+    setPermissionOpen(false);
+    requestLocation();
+  };
+
+  const enableSimulation = () => {
+    setPermissionOpen(false);
+    const centerLat = 41.9028;
+    const centerLng = 12.4964;
+    map.current?.flyTo([centerLat, centerLng], 13);
+    const demo: NearbyUser[] = [
+      { user_id: 'demo-1', name: 'Luca', avatar_url: null, latitude: centerLat + 0.002, longitude: centerLng + 0.003 },
+      { user_id: 'demo-2', name: 'Sofia', avatar_url: null, latitude: centerLat - 0.002, longitude: centerLng - 0.001 },
+      { user_id: 'demo-3', name: 'Marco', avatar_url: null, latitude: centerLat + 0.001, longitude: centerLng - 0.003 },
+    ].filter((d) => d.user_id !== user?.id);
+    setNearby(demo);
   };
 
   return (
