@@ -94,6 +94,8 @@ const FriendsWorldMap = () => {
   const [nearby, setNearby] = useState<NearbyUser[]>([]);
   const [selectedPerson, setSelectedPerson] = useState<NearbyUser | null>(null);
   const [locating, setLocating] = useState(false);
+  const [permissionOpen, setPermissionOpen] = useState(false);
+  const [permissionUnsupported, setPermissionUnsupported] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
