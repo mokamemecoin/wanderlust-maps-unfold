@@ -375,6 +375,35 @@ const FriendsWorldMap = () => {
         open={!!selectedPerson}
         onOpenChange={(open) => !open && setSelectedPerson(null)}
       />
+
+      <Dialog open={permissionOpen} onOpenChange={setPermissionOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader className="items-center text-center">
+            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+              <MapPin className="w-6 h-6 text-primary" />
+            </div>
+            <DialogTitle>Prendiamo un caffè?</DialogTitle>
+            <DialogDescription>
+              {permissionUnsupported
+                ? 'Il tuo browser non supporta la geolocalizzazione. Attiva il GPS dal dispositivo per usare questa funzione.'
+                : 'Attiva la posizione per scoprire chi si trova nelle tue vicinanze e fare due chiacchiere.'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
+            {!permissionUnsupported && (
+              <Button className="w-full rounded-full" onClick={requestLocation}>
+                Attiva Posizione
+              </Button>
+            )}
+            <Button variant="outline" className="w-full rounded-full" onClick={() => setPermissionOpen(false)}>
+              {permissionUnsupported ? 'Chiudi' : 'Annulla'}
+            </Button>
+            <Button variant="ghost" className="w-full text-muted-foreground" onClick={enableSimulation}>
+              Prova modalità simulazione
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
