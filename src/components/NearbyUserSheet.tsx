@@ -10,7 +10,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MapPin, MessageCircle, Send } from 'lucide-react';
+import { Coffee, MapPin, MessageCircle, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -55,8 +55,8 @@ const NearbyUserSheet = ({ person, open, onOpenChange }: Props) => {
       .then(({ data }) => setPosts((data || []) as PostPreview[]));
   }, [open, person]);
 
-  const sendQuick = async () => {
-    const content = text.trim();
+  const sendQuick = async (preset?: string) => {
+    const content = (preset ?? text).trim();
     if (!content || !person) return;
     if (!user) {
       toast({ description: 'Accedi per inviare messaggi.' });
@@ -112,7 +112,7 @@ const NearbyUserSheet = ({ person, open, onOpenChange }: Props) => {
                 aria-label="Messaggio rapido"
                 className="flex-1 bg-card text-foreground border-border"
               />
-              <Button onClick={sendQuick} disabled={sending} aria-label="Invia messaggio rapido">
+              <Button onClick={() => sendQuick()} disabled={sending} aria-label="Invia messaggio rapido">
                 <Send className="w-4 h-4" />
               </Button>
             </div>
@@ -126,6 +126,14 @@ const NearbyUserSheet = ({ person, open, onOpenChange }: Props) => {
               }}
             >
               <MessageCircle className="w-4 h-4 mr-2" /> Apri chat
+            </Button>
+
+            <Button
+              className="w-full"
+              disabled={sending}
+              onClick={() => sendQuick('Ci prendiamo un caffè? ☕')}
+            >
+              <Coffee className="w-4 h-4 mr-2" /> Invita per un caffè
             </Button>
 
             <div>
