@@ -391,13 +391,22 @@ const FriendsWorldMap = () => {
             <DialogDescription>
               {permissionUnsupported
                 ? 'Il tuo browser non supporta la geolocalizzazione. Attiva il GPS dal dispositivo per usare questa funzione.'
-                : 'Attiva la posizione per scoprire chi si trova nelle tue vicinanze e fare due chiacchiere.'}
+                : permissionDenied
+                  ? 'Sembra che i permessi GPS siano disattivati sul tuo browser. Abilitalo nelle impostazioni del dispositivo oppure usa la modalità simulazione.'
+                  : 'Attiva la posizione per scoprire chi si trova nelle tue vicinanze e fare due chiacchiere.'}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2 sm:flex-col">
             {!permissionUnsupported && (
-              <Button className="w-full rounded-full" onClick={requestLocation}>
-                Attiva Posizione
+              <Button className="w-full rounded-full" onClick={requestLocation} disabled={locating}>
+                {locating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Rilevamento in corso...
+                  </>
+                ) : (
+                  'Attiva Posizione'
+                )}
               </Button>
             )}
             <Button variant="outline" className="w-full rounded-full" onClick={() => setPermissionOpen(false)}>
