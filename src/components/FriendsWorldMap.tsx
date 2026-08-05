@@ -322,6 +322,7 @@ const FriendsWorldMap = () => {
     setPermissionOpen(false);
     const centerLat = 41.9028;
     const centerLng = 12.4964;
+    setCoords({ lat: centerLat, lng: centerLng });
     map.current?.flyTo([centerLat, centerLng], 13);
     const demo: NearbyUser[] = [
       { user_id: 'demo-1', name: 'Luca', avatar_url: null, latitude: centerLat + 0.002, longitude: centerLng + 0.003 },
