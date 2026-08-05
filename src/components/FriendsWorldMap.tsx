@@ -309,6 +309,8 @@ const FriendsWorldMap = () => {
         setLocating(false);
         setPermissionDenied(true);
         setPermissionOpen(true);
+        // L'iframe di preview può bloccare il GPS: fallback automatico alla simulazione
+        window.setTimeout(() => enableSimulation(), 1000);
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
