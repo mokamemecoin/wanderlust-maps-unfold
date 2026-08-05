@@ -315,7 +315,10 @@ const FriendsWorldMap = () => {
   };
 
   const handleCoffee = () => {
-    requestLocation();
+    setPermissionDenied(false);
+    setPermissionUnsupported(!('geolocation' in navigator));
+    setLocating(false);
+    setPermissionOpen(true);
   };
 
   const enableSimulation = () => {
@@ -409,7 +412,7 @@ const FriendsWorldMap = () => {
                     Rilevamento posizione in corso...
                   </>
                 ) : (
-                  permissionDenied ? 'Riprova con il GPS' : 'Attiva Posizione'
+                  'Attiva Posizione'
                 )}
               </Button>
             )}
@@ -418,7 +421,7 @@ const FriendsWorldMap = () => {
             </Button>
             {(permissionDenied || permissionUnsupported) && (
               <Button variant="ghost" className="w-full text-muted-foreground" onClick={enableSimulation}>
-                Impossibile rilevare la posizione. Usa la modalità simulazione
+                Prova modalità simulazione
               </Button>
             )}
           </DialogFooter>
