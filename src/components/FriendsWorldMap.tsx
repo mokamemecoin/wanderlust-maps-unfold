@@ -322,6 +322,9 @@ const FriendsWorldMap = () => {
 
   const enableSimulation = () => {
     setPermissionOpen(false);
+    setPermissionDenied(false);
+    setPermissionUnsupported(false);
+    setLocating(false);
     const centerLat = 41.9028;
     const centerLng = 12.4964;
     setCoords({ lat: centerLat, lng: centerLng });
