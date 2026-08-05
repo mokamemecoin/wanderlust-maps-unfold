@@ -96,6 +96,8 @@ const FriendsWorldMap = () => {
   const [locating, setLocating] = useState(false);
   const [permissionOpen, setPermissionOpen] = useState(false);
   const [permissionUnsupported, setPermissionUnsupported] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -292,16 +294,20 @@ const FriendsWorldMap = () => {
       return;
     }
     setPermissionUnsupported(false);
+    setPermissionDenied(false);
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
+        setCoords({ lat: latitude, lng: longitude });
+        setLocating(false);
+        setPermissionOpen(false);
         map.current?.flyTo([latitude, longitude], 13);
         await loadNearby(latitude, longitude);
-        setLocating(false);
       },
       () => {
         setLocating(false);
+        setPermissionDenied(true);
         setPermissionOpen(true);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -309,7 +315,6 @@ const FriendsWorldMap = () => {
   };
 
   const handleCoffee = () => {
-    setPermissionOpen(false);
     requestLocation();
   };
 
@@ -317,6 +322,7 @@ const FriendsWorldMap = () => {
     setPermissionOpen(false);
     const centerLat = 41.9028;
     const centerLng = 12.4964;
+    setCoords({ lat: centerLat, lng: centerLng });
     map.current?.flyTo([centerLat, centerLng], 13);
     const demo: NearbyUser[] = [
       { user_id: 'demo-1', name: 'Luca', avatar_url: null, latitude: centerLat + 0.002, longitude: centerLng + 0.003 },
@@ -386,13 +392,22 @@ const FriendsWorldMap = () => {
             <DialogDescription>
               {permissionUnsupported
                 ? 'Il tuo browser non supporta la geolocalizzazione. Attiva il GPS dal dispositivo per usare questa funzione.'
-                : 'Attiva la posizione per scoprire chi si trova nelle tue vicinanze e fare due chiacchiere.'}
+                : permissionDenied
+                  ? 'Sembra che i permessi GPS siano disattivati sul tuo browser. Abilitalo nelle impostazioni del dispositivo oppure usa la modalità simulazione.'
+                  : 'Attiva la posizione per scoprire chi si trova nelle tue vicinanze e fare due chiacchiere.'}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-col gap-2 sm:flex-col">
             {!permissionUnsupported && (
-              <Button className="w-full rounded-full" onClick={requestLocation}>
-                Attiva Posizione
+              <Button className="w-full rounded-full" onClick={requestLocation} disabled={locating}>
+                {locating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Rilevamento in corso...
+                  </>
+                ) : (
+                  'Attiva Posizione'
+                )}
               </Button>
             )}
             <Button variant="outline" className="w-full rounded-full" onClick={() => setPermissionOpen(false)}>
