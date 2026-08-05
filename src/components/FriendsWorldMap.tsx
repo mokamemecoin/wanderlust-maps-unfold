@@ -96,6 +96,8 @@ const FriendsWorldMap = () => {
   const [locating, setLocating] = useState(false);
   const [permissionOpen, setPermissionOpen] = useState(false);
   const [permissionUnsupported, setPermissionUnsupported] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -292,16 +294,20 @@ const FriendsWorldMap = () => {
       return;
     }
     setPermissionUnsupported(false);
+    setPermissionDenied(false);
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
+        setCoords({ lat: latitude, lng: longitude });
+        setLocating(false);
+        setPermissionOpen(false);
         map.current?.flyTo([latitude, longitude], 13);
         await loadNearby(latitude, longitude);
-        setLocating(false);
       },
       () => {
         setLocating(false);
+        setPermissionDenied(true);
         setPermissionOpen(true);
       },
       { enableHighAccuracy: true, timeout: 10000 }
@@ -309,7 +315,6 @@ const FriendsWorldMap = () => {
   };
 
   const handleCoffee = () => {
-    setPermissionOpen(false);
     requestLocation();
   };
 
