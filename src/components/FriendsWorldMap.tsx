@@ -309,8 +309,6 @@ const FriendsWorldMap = () => {
         setLocating(false);
         setPermissionDenied(true);
         setPermissionOpen(true);
-        // L'iframe di preview può bloccare il GPS: fallback automatico alla simulazione
-        window.setTimeout(() => enableSimulation(), 1000);
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -398,7 +396,7 @@ const FriendsWorldMap = () => {
               {permissionUnsupported
                 ? 'Il tuo browser non supporta la geolocalizzazione. Attiva il GPS dal dispositivo per usare questa funzione.'
                 : permissionDenied
-                  ? 'Sembra che i permessi GPS siano disattivati sul tuo browser. Abilitalo nelle impostazioni del dispositivo oppure usa la modalità simulazione.'
+                  ? 'Impossibile rilevare la posizione. Controlla i permessi GPS del dispositivo e riprova, oppure usa la modalità simulazione.'
                   : 'Attiva la posizione per scoprire chi si trova nelle tue vicinanze e fare due chiacchiere.'}
             </DialogDescription>
           </DialogHeader>
@@ -408,19 +406,21 @@ const FriendsWorldMap = () => {
                 {locating ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Rilevamento in corso...
+                    Rilevamento posizione in corso...
                   </>
                 ) : (
-                  'Attiva Posizione'
+                  permissionDenied ? 'Riprova con il GPS' : 'Attiva Posizione'
                 )}
               </Button>
             )}
             <Button variant="outline" className="w-full rounded-full" onClick={() => setPermissionOpen(false)}>
               {permissionUnsupported ? 'Chiudi' : 'Annulla'}
             </Button>
-            <Button variant="ghost" className="w-full text-muted-foreground" onClick={enableSimulation}>
-              Prova modalità simulazione
-            </Button>
+            {(permissionDenied || permissionUnsupported) && (
+              <Button variant="ghost" className="w-full text-muted-foreground" onClick={enableSimulation}>
+                Impossibile rilevare la posizione. Usa la modalità simulazione
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
