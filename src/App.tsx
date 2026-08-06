@@ -21,6 +21,7 @@ import Chat from "./pages/Chat";
 import NewPost from "./pages/NewPost";
 import About from "./pages/About";
 import Profile from "./pages/Profile";
+import PublicProfile from "./pages/PublicProfile";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
@@ -75,6 +76,7 @@ const App = () => (
               <Route path="/post" element={<NewPost />} />
               <Route path="/about" element={<About />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/u/:userId" element={<PublicProfile />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/login" element={<Login />} />
               <Route path="/terms" element={<Terms />} />
