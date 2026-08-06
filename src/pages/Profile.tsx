@@ -260,7 +260,7 @@ const Profile = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ProfileTravelMap places={places} countries={countries} />
+            <ProfileTravelMap places={visiblePlaces} countries={visibleCountries} />
 
             <Button
               className="w-full"
@@ -273,7 +273,7 @@ const Profile = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-xl bg-muted/50 p-4 text-center">
-                <div className="text-3xl font-bold text-primary">{countries.length}</div>
+                <div className="text-3xl font-bold text-primary">{visibleCountries.length}</div>
                 <div className="text-sm text-muted-foreground">Paesi visitati</div>
               </div>
               <div className="rounded-xl bg-muted/50 p-4 text-center">
@@ -287,15 +287,27 @@ const Profile = () => {
               <p className="text-xs text-muted-foreground">
                 {mapLoading
                   ? "Calcolo dei paesi visitati in corso..."
-                  : `${countries.length} paesi su 195 nel mondo`}
+                  : `${visibleCountries.length} paesi su 195 nel mondo`}
               </p>
             </div>
 
-            {countries.length > 0 && (
+            {visibleCountries.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {countries.map((country) => (
-                  <Badge key={country.countryCode || country.country} variant="secondary">
+                {visibleCountries.map((country) => (
+                  <Badge
+                    key={country.countryCode || country.country}
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                  >
                     {country.country}
+                    <button
+                      type="button"
+                      aria-label={`Rimuovi ${country.country} dai paesi visitati`}
+                      onClick={() => removeCountry(country)}
+                      className="rounded-full hover:text-destructive"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </Badge>
                 ))}
               </div>
@@ -312,7 +324,12 @@ const Profile = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ProfilePostsGrid trips={allEntries} places={places} />
+            <ProfilePostsGrid
+              trips={allEntries}
+              places={places}
+              currentUserId={user.id}
+              onChanged={loadUserData}
+            />
           </CardContent>
         </Card>
 
