@@ -122,16 +122,23 @@ const Friends = () => {
             key={p.user_id}
             className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
           >
-            <Avatar className="w-11 h-11">
-              <AvatarImage src={p.avatar_url ?? undefined} alt={fullName(p)} />
-              <AvatarFallback>{fullName(p)[0]}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">{fullName(p)}</p>
-              {p.location && (
-                <p className="text-xs text-muted-foreground truncate">{p.location}</p>
-              )}
-            </div>
+            <button
+              type="button"
+              onClick={() => navigate(`/u/${p.user_id}`)}
+              className="flex flex-1 min-w-0 items-center gap-3 text-left"
+              aria-label={`Apri profilo di ${fullName(p)}`}
+            >
+              <Avatar className="w-11 h-11">
+                <AvatarImage src={p.avatar_url ?? undefined} alt={fullName(p)} />
+                <AvatarFallback>{fullName(p)[0]}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">{fullName(p)}</p>
+                {p.location && (
+                  <p className="text-xs text-muted-foreground truncate">{p.location}</p>
+                )}
+              </div>
+            </button>
             <div className="flex items-center gap-2 shrink-0">
               <Button
                 size="sm"
