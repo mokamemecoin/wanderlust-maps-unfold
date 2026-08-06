@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, MapPin, Calendar, LogOut, Plus, Edit, Phone, Mail, Globe, Images, Share2 } from "lucide-react";
+import { User, MapPin, Calendar, LogOut, Plus, Edit, Phone, Mail, Globe, Images, Share2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
@@ -25,15 +25,49 @@ const Profile = () => {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showAddTrip, setShowAddTrip] = useState(false);
   const [showPassport, setShowPassport] = useState(false);
+  const [hiddenCountries, setHiddenCountries] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("miomondo_hidden_countries") || "[]");
+    } catch {
+      return [];
+    }
+  });
 
   // Protect route - require authentication
   useRouteProtection(true);
 
-  const allEntries = [...userTrips, ...userPosts];
+  const allEntries = [
+    ...userTrips.map((t) => ({ ...t, source: "trips" as const })),
+    ...userPosts.map((p) => ({ ...p, source: "posts" as const })),
+  ];
 
-  const { places, countries, worldPercentage, loading: mapLoading } = useVisitedCountries(
+  const { places, countries, loading: mapLoading } = useVisitedCountries(
     allEntries.map((entry) => entry.location).filter(Boolean)
   );
+
+  const hidden = new Set(hiddenCountries);
+  const countryKey = (c: { countryCode: string; country: string }) => c.countryCode || c.country;
+  const visibleCountries = countries.filter((c) => !hidden.has(countryKey(c)));
+  const visiblePlaces = places.filter((p) => !hidden.has(p.countryCode || p.country));
+  const worldPercentage = Math.round((visibleCountries.length / 195) * 1000) / 10;
+
+  const removeCountry = (country: { country: string; countryCode: string }) => {
+    const key = countryKey(country);
+    const locations = new Set(
+      places.filter((p) => (p.countryCode || p.country) === key).map((p) => p.location)
+    );
+    const related = allEntries.filter((e) => e.location && locations.has(e.location));
+    if (related.length > 0) {
+      toast({
+        title: "Paese ancora in uso",
+        description: `Ci sono ancora ${related.length} contenuti associati a ${country.country}. Eliminali per rimuovere il Paese.`,
+      });
+      return;
+    }
+    const next = [...hiddenCountries, key];
+    setHiddenCountries(next);
+    localStorage.setItem("miomondo_hidden_countries", JSON.stringify(next));
+  };
 
   useEffect(() => {
     if (user) {
@@ -226,7 +260,7 @@ const Profile = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <ProfileTravelMap places={places} countries={countries} />
+            <ProfileTravelMap places={visiblePlaces} countries={visibleCountries} />
 
             <Button
               className="w-full"
@@ -239,7 +273,7 @@ const Profile = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-xl bg-muted/50 p-4 text-center">
-                <div className="text-3xl font-bold text-primary">{countries.length}</div>
+                <div className="text-3xl font-bold text-primary">{visibleCountries.length}</div>
                 <div className="text-sm text-muted-foreground">Paesi visitati</div>
               </div>
               <div className="rounded-xl bg-muted/50 p-4 text-center">
@@ -253,15 +287,27 @@ const Profile = () => {
               <p className="text-xs text-muted-foreground">
                 {mapLoading
                   ? "Calcolo dei paesi visitati in corso..."
-                  : `${countries.length} paesi su 195 nel mondo`}
+                  : `${visibleCountries.length} paesi su 195 nel mondo`}
               </p>
             </div>
 
-            {countries.length > 0 && (
+            {visibleCountries.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                {countries.map((country) => (
-                  <Badge key={country.countryCode || country.country} variant="secondary">
+                {visibleCountries.map((country) => (
+                  <Badge
+                    key={country.countryCode || country.country}
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                  >
                     {country.country}
+                    <button
+                      type="button"
+                      aria-label={`Rimuovi ${country.country} dai paesi visitati`}
+                      onClick={() => removeCountry(country)}
+                      className="rounded-full hover:text-destructive"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
                   </Badge>
                 ))}
               </div>
@@ -278,7 +324,12 @@ const Profile = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <ProfilePostsGrid trips={allEntries} places={places} />
+            <ProfilePostsGrid
+              trips={allEntries}
+              places={places}
+              currentUserId={user.id}
+              onChanged={loadUserData}
+            />
           </CardContent>
         </Card>
 
