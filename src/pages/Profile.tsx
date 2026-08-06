@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, MapPin, Calendar, LogOut, Plus, Edit, Phone, Mail, Globe, Images, Share2 } from "lucide-react";
+import { User, MapPin, Calendar, LogOut, Plus, Edit, Phone, Mail, Globe, Images, Share2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { EditProfileDialog } from "@/components/EditProfileDialog";
@@ -25,15 +25,49 @@ const Profile = () => {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showAddTrip, setShowAddTrip] = useState(false);
   const [showPassport, setShowPassport] = useState(false);
+  const [hiddenCountries, setHiddenCountries] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("miomondo_hidden_countries") || "[]");
+    } catch {
+      return [];
+    }
+  });
 
   // Protect route - require authentication
   useRouteProtection(true);
 
-  const allEntries = [...userTrips, ...userPosts];
+  const allEntries = [
+    ...userTrips.map((t) => ({ ...t, source: "trips" as const })),
+    ...userPosts.map((p) => ({ ...p, source: "posts" as const })),
+  ];
 
-  const { places, countries, worldPercentage, loading: mapLoading } = useVisitedCountries(
+  const { places, countries, loading: mapLoading } = useVisitedCountries(
     allEntries.map((entry) => entry.location).filter(Boolean)
   );
+
+  const hidden = new Set(hiddenCountries);
+  const countryKey = (c: { countryCode: string; country: string }) => c.countryCode || c.country;
+  const visibleCountries = countries.filter((c) => !hidden.has(countryKey(c)));
+  const visiblePlaces = places.filter((p) => !hidden.has(p.countryCode || p.country));
+  const worldPercentage = Math.round((visibleCountries.length / 195) * 1000) / 10;
+
+  const removeCountry = (country: { country: string; countryCode: string }) => {
+    const key = countryKey(country);
+    const locations = new Set(
+      places.filter((p) => (p.countryCode || p.country) === key).map((p) => p.location)
+    );
+    const related = allEntries.filter((e) => e.location && locations.has(e.location));
+    if (related.length > 0) {
+      toast({
+        title: "Paese ancora in uso",
+        description: `Ci sono ancora ${related.length} contenuti associati a ${country.country}. Eliminali per rimuovere il Paese.`,
+      });
+      return;
+    }
+    const next = [...hiddenCountries, key];
+    setHiddenCountries(next);
+    localStorage.setItem("miomondo_hidden_countries", JSON.stringify(next));
+  };
 
   useEffect(() => {
     if (user) {
