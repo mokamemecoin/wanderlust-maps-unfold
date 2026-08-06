@@ -14,6 +14,8 @@ import ProfileTravelMap from "@/components/ProfileTravelMap";
 import ProfilePostsGrid from "@/components/ProfilePostsGrid";
 import PassportStoryCard from "@/components/PassportStoryCard";
 import { useVisitedCountries } from "@/hooks/useVisitedCountries";
+import { useFollowStats } from "@/hooks/useFollowStats";
+import FollowListDialog, { FollowListMode } from "@/components/FollowListDialog";
 import { Progress } from "@/components/ui/progress";
 
 const Profile = () => {
@@ -25,6 +27,7 @@ const Profile = () => {
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showAddTrip, setShowAddTrip] = useState(false);
   const [showPassport, setShowPassport] = useState(false);
+  const [listMode, setListMode] = useState<FollowListMode | null>(null);
   const [hiddenCountries, setHiddenCountries] = useState<string[]>(() => {
     try {
       return JSON.parse(localStorage.getItem("miomondo_hidden_countries") || "[]");
@@ -35,6 +38,8 @@ const Profile = () => {
 
   // Protect route - require authentication
   useRouteProtection(true);
+
+  const { followers, following } = useFollowStats(user?.id, user?.id);
 
   const allEntries = [
     ...userTrips.map((t) => ({ ...t, source: "trips" as const })),
@@ -202,6 +207,16 @@ const Profile = () => {
                 <div className="flex items-center mt-2 text-sm text-muted-foreground">
                   <Calendar className="w-4 h-4 mr-1" />
                   Membro dal {new Date(user.created_at).toLocaleDateString('it-IT')}
+                </div>
+                <div className="flex gap-4 mt-2">
+                  <button type="button" className="text-sm" onClick={() => setListMode('followers')}>
+                    <span className="font-bold">{followers}</span>{' '}
+                    <span className="text-muted-foreground">Follower</span>
+                  </button>
+                  <button type="button" className="text-sm" onClick={() => setListMode('following')}>
+                    <span className="font-bold">{following}</span>{' '}
+                    <span className="text-muted-foreground">Following</span>
+                  </button>
                 </div>
               </div>
               <Button 
@@ -437,6 +452,14 @@ const Profile = () => {
         places={places}
         countries={countries}
         worldPercentage={worldPercentage}
+      />
+
+      <FollowListDialog
+        open={!!listMode}
+        onOpenChange={(open) => !open && setListMode(null)}
+        mode={listMode ?? 'followers'}
+        userId={user.id}
+        currentUserId={user.id}
       />
     </div>
   );
