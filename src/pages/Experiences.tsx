@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import PostComments from '@/components/PostComments';
+import PostOwnerMenu from '@/components/PostOwnerMenu';
 
 interface FeedPost {
   id: string;
@@ -295,7 +296,7 @@ const Experiences = () => {
                   <AvatarImage src={profiles[post.user_id]?.avatar_url} alt={authorName(post.user_id)} />
                   <AvatarFallback>{authorName(post.user_id)[0]}</AvatarFallback>
                 </Avatar>
-                <div>
+                <div className="flex-1 min-w-0">
                   <CardTitle className="text-base">{authorName(post.user_id)}</CardTitle>
                   <CardDescription className="text-sm flex items-center gap-1">
                     {post.location && (
@@ -307,6 +308,12 @@ const Experiences = () => {
                     {timeAgo(post.created_at)}
                   </CardDescription>
                 </div>
+                <PostOwnerMenu
+                  table="posts"
+                  item={post}
+                  currentUserId={user?.id}
+                  onChanged={load}
+                />
               </div>
             </CardHeader>
 
