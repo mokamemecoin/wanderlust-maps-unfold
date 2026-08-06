@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2, Send } from 'lucide-react';
+import { Loader2, Send, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,6 +90,18 @@ const PostComments = ({ postId, autoFocusText }: PostCommentsProps) => {
     setComments((prev) => [...prev, data as CommentRow]);
   };
 
+  const removeComment = async (id: string) => {
+    const previous = comments;
+    setComments((prev) => prev.filter((c) => c.id !== id));
+    const { error } = await supabase.from('post_comments').delete().eq('id', id);
+    if (error) {
+      setComments(previous);
+      toast({ description: 'Commento non eliminato.', variant: 'destructive' });
+      return;
+    }
+    toast({ description: 'Commento eliminato.' });
+  };
+
   return (
     <div className="mt-3 pt-3 border-t space-y-3">
       {loading ? (
@@ -100,15 +112,26 @@ const PostComments = ({ postId, autoFocusText }: PostCommentsProps) => {
         comments.map((c) => {
           const a = authors[c.user_id];
           return (
-            <div key={c.id} className="flex gap-2">
+            <div key={c.id} className="flex gap-2 items-start">
               <Avatar className="w-7 h-7">
                 <AvatarImage src={a?.avatar ?? undefined} alt={a?.name ?? 'Viaggiatore'} />
                 <AvatarFallback>{(a?.name ?? 'V')[0]}</AvatarFallback>
               </Avatar>
-              <div className="text-xs">
+              <div className="text-xs flex-1">
                 <span className="font-medium">{a?.name ?? 'Viaggiatore'}: </span>
                 <span className="text-muted-foreground">{c.content}</span>
               </div>
+              {user?.id === c.user_id && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                  aria-label="Elimina commento"
+                  onClick={() => removeComment(c.id)}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              )}
             </div>
           );
         })
